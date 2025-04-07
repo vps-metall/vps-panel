@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css" type="text/css">
+    <title>Админ панель</title>
+    <link rel="shortcut icon" href="#">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/imask"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="../functions.js"></script>
+</head>
+<body> 
+    <div class="leftColumn">
+        <header><h5>Админ меню</h5></header>
+        <div class="main-part">
+            <div onclick="selectPanel('workers-panel')" class="item">
+                <i class="fa-solid fa-user-secret"></i>
+                <p>Работники</p>
+            </div>
+            <div onclick="selectPanel('machines-panel')" class="item">
+                <i class="fa-solid fa-robot"></i>
+                <p>Станки</p>
+            </div>
+            <div onclick="selectPanel('details-panel')" class="item">
+                <i class="fa-solid fa-gears"></i>
+                <p>Детали</p>
+            </div>
+        </div>
+    </div>
+    <div></div>
+    <div class="centerColumn">
+        <header></header>
+        <div class="title-div">
+            <h2 id="h2TitlePanel">Станки</h2>
+        </div>
+        <div class="main-part">
+            <div id="workers-panel" class="display-none">
+                <div class="div-white-bg">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Статус</th>
+                                <th>Рабочие места</th>
+                                <th>Начало рабочей смены</th>
+                                <th>Инфо</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-workers-table">
+                            <tr><td colspan="5">Нет данных</td></tr>
+                            <tr class="green-allocation">
+                                <td>Васильев В.В.</td>
+                                <td>На работе</td>
+                                <td>Станок №1 - Наколювач - Настройка - Проход + Отрезка <br/>
+                                    Станок №2 - Бобишка - Изготовление - Проход + Резьба <br/>
+                                    Станок №3 - Вал - Изготовление - Проход</td>
+                                <td>10:12 (5:22)</td>
+                                <td style="text-align: center;"><i class="fas fa-info-circle"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="div-white-bg">
+                    <h2>Добавление нового работника</h2>
+                    <div class="div-container-add-menu">
+                        <div class="div-description">
+                            <h5>Тут можно поставить какое-то уведомление связанно с добавлением нового человека</h5>
+                        </div>
+                        <div class="container-form">
+                            <h5>ФИО Человека</h5>
+                            <input id="inputNameAddNewWorker" type="text">
+                            <h5>Должность человека</h5>
+                            <select id="selectRoleAddNewWorker">
+                                <option value="">Выберите должность человека</option>
+                                <option value="operator">Оператор</option>
+                                <option value="naladchik">Наладчик</option>
+                            </select>
+                            <button onclick="addNewWorker()">Добавить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="machines-panel">
+                <div id="containerTablesMachines"></div>
+                <div class="div-white-bg">
+                    <h2>Добавление нового станка</h2>
+                    <div class="div-container-add-menu">
+                        <div class="div-description">
+                            <h5>Тут можно поставить какое-то уведомление связанно с добавлением нового станка</h5>
+                        </div>
+                        <div class="container-form">
+                            <h5>Название станка</h5>
+                            <input id="inputNameNewMachine" type="text">
+                            <h5>Тип станка</h5>
+                            <select id="selectTypesMachinesForAddMachine">
+                                <option value="">Выберите тип станка</option>
+                            </select>
+                            <button onclick="addNewMachine()">Добавить</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="div-white-bg">
+                    <h2>Добавить новую группу станков</h2>
+                    <div class="div-container-add-menu">
+                        <div class="div-description">
+                            <h5>Тут можно поставить какое-то уведомление связанно с добавлением новой группы станков</h5>
+                        </div>
+                        <div class="container-form">
+                            <h5>Название новой группы станков</h5>
+                            <input id="inputNameNewTypeMachine" type="text">
+                            <button onclick="addNewMachineGroup()">Добавить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="details-panel">
+                <div class="div-white-bg">
+                    <input placeholder="Введите название детали для поиска..." type="text">
+                </div>
+                <div class="div-white-bg">
+                    <h2>Все детали</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Количество установок</th>
+                                <th>Используемые типы станков</th>
+                                <th>Инфо</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-details-table">
+                            <tr>
+                                <td>Наколювач</td>
+                                <td>2</td>
+                                <td>Токарные станки <br/>Фрезерные станки</td>
+                                <td style="text-align: center;"><i class="fas fa-info-circle"></i></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="div-white-bg">
+                    <h2>Добавить новую деталь</h2>
+                    <div class="div-container-add-menu">
+                        <div class="div-description">
+                            <h5>Тут можно поставить какое-то уведомление связанно с добавлением новой детали</h5>
+                        </div>
+                        <div class="container-form">
+                            <h5>Название новой детали</h5>
+                            <input id="inputNameNewDetail" type="text">
+                            <div id="containerInstalledAddNewDetail">
+                                
+                            </div>
+                            <h3 onclick="clickAddInstallForDetail()" class="h3-install">+ Добавить установку</h3>
+                            <button onclick="addNewDetail()">Добавить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div onclick="closeAllAllerts()" id="bg-allert" class="display-none"></div>
+    
+    <div id="allertMoreInfoWorker" class="alert-window display-none">
+    <span class="close-btn" onclick="closeAllAllerts()">×</span>
+
+    <div class="worker-header">
+        <img src="https://via.placeholder.com/100" alt="Фото работника" class="worker-photo">
+        <div>
+        <h2 id="h2WorkerNameMoreInfo">Иванов Иван Иванович</h2>
+        <!-- <p>Оператор станка</p> -->
+        </div>
+    </div>
+
+    <div class="date-filter">
+        <label>Период:</label>
+        <input id="inputStartDateMoreInfoWorker" type="date"> —
+        <input id="inputEndDateMoreInfoWorker" type="date">
+        <button onclick="getWorkerLogsByDate()">Показать</button>
+    </div>
+
+    <div class="work-days" id="containerMoreInfoWorkDays">
+        <!-- День 1
+        <div class="day-block">
+        <h3>Смена 21.03.2025 8:43 - 22.03.2025 6:27. Часы: 12:21</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Время</th>
+                <th>Время станка</th>
+                <th>Станок</th>
+                <th>Деталь</th>
+                <th>Установка</th>
+                <th>Норма</th>
+                <th>Выполнено</th>
+                <th>Статус</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="norm-ok">
+                <td>24.03.2025 10:32</td>
+                <td>8:45</td>
+                <td>7:59</td>
+                <td>001001</td>
+                <td>Наколювач</td>
+                <td>Проход + резьба</td>
+                <td>350</td>
+                <td>350</td>
+                <td>Выполнено</td>
+            </tr>
+            <tr class="norm-fail">
+                <td>24.03.2025 10:32</td>
+                <td>8:45</td>
+                <td>7:59</td>
+                <td>001002</td>
+                <td>Вал</td>
+                <td>Точение</td>
+                <td>300</td>
+                <td>200</td>
+                <td>Не выполнено</td>
+            </tr>
+            </tbody>
+        </table>
+        </div>
+
+        -->
+        
+
+    </div>
+
+    <div class="total-work">
+        <h4>Итого отработано: <span id="spanTotalWorkTimer"></span></h4>
+    </div>
+    </div>
+
+    <div id="allertMoreInfoMachine" class="alert-window display-none">
+        <span class="close-btn" onclick="closeAllAllerts()">×</span>
+    
+        <div class="worker-header">
+            <h2 id="h2MachineNameMoreInfo"></h2>
+        </div>
+    
+        <div class="date-filter">
+            <label>Период:</label>
+            <input id="inputStartDateMoreInfoMachine" type="date"> —
+            <input id="inputEndDateMoreInfoMachine" type="date">
+            <button onclick="getMachineLogsByDate()">Показать</button>
+        </div>
+    
+        <div class="work-days" id="containerMoreInfoForMachine"></div>
+    
+        <div class="total-work">
+            <!-- <h4>Итого отработано: <span id="spanTotalWorkTimer"></span></h4> -->
+        </div>
+    </div>
+
+    <div id="allertMoreInfoDetail" class="alert-window display-none">
+        <span class="close-btn" onclick="closeAllAllerts()">×</span>
+    
+        <div class="worker-header">
+            <h2 id="h2DetailNameMoreInfo"></h2>
+        </div>
+    
+        <div class="date-filter">
+            <label>Период:</label>
+            <input id="inputStartDateMoreInfoDetail" type="date"> —
+            <input id="inputEndDateMoreInfoDetail" type="date">
+            <button onclick="getDetailLogsByDate()">Показать</button>
+        </div>
+    
+        <div class="work-days" id="containerMoreInfoForDetail"></div>
+    
+        <div class="total-work">
+            <!-- <h4>Итого отработано: <span id="spanTotalWorkTimer"></span></h4> -->
+        </div>
+    </div>
+
+    <div id="allertNewSelectDateForWorkerInfo" class="display-none">
+        <div class="container">
+            <span class="close-btn" onclick="closeAllAllerts()">&times;</span>
+            <h2 style="margin-bottom: 12px;">Выбор периода</h2>
+            <p>Для получения дополнительной информации по <b id="bNameSelectedWorkerName"></b><br/><p style="margin-top: 8px;">Выберите период:</p></p>
+            <div class="date-filter">
+                <input type="date" id="inputStartDateForUserDetailInfo" placeholder="Начальная дата">
+                <span>—</span>
+                <input type="date" id="inputEndDateForUserDetailInfo" placeholder="Конечная дата">
+            </div>
+            <button class="show-btn" onclick="showDetailInfoForWorker()">Показать</button>
+        </div>
+    </div>
+
+    <div id="allertDetailInformationForWorker" class="alert-window display-none">
+        <div class="container-name">
+            <div style="display: flex; align-items: center;">
+                <h2 id="h2WorkerNameForDetailInformation" style=" margin-right: 12px;"></h2>
+                <i onclick="openAllertDetailInformationForWorkerPeriod()" style="color: #777;" class="fas fa-chart-line"></i>
+            </div>
+            <h2 id="h2RangeDatesSelectedWorkerDetailInformation"></h2>
+        </div>
+        <div class="container">
+            <div>
+                <i onclick="changeMounthDetailInformationWorker('back')" class="fa fa-chevron-left"></i>
+            </div>
+            <div>
+                <div class="container-name-mounth">
+                    <h3 id="h3SelectedYearForDetailInformationWorker"></h3>
+                    <div style="display: flex; align-items: center;">
+                        <h3 id="h3SelectedMounthUaForDetailInformationWorker"></h3>
+                        <i style="color: #777; margin-left: 12px;" class="fas fa-chart-line" onclick="openAllertDetailInFormationForWorkerMounth()"></i>
+                    </div>
+                    <h3 id="h3SelectedMounthRuForDetailInformationWorker"></h3>
+                </div>
+                <div class="container-days-name">
+                    <p>Понедельник</p>
+                    <p>Вторник</p>
+                    <p>Среда</p>
+                    <p>Четверг</p>
+                    <p>Пятница</p>
+                    <p>Суббота</p>
+                    <p>Воскресенье</p>
+                </div>
+                <div id="containerDatesCalendar"></div>
+            </div>
+            <div>
+                <i onclick="changeMounthDetailInformationWorker('next')" class="fa fa-chevron-right"></i>
+            </div>
+        </div>
+    </div>
+
+    <div id="allertDetailInFormationForWorkerDay" class="alert-window display-none allert-diagrams">
+        <div class="diagrams-part">
+            <div class="title-container">
+                <h2 id="h2NameWorkerDetailInformationForWorkerDay"></h2>
+                <h2 id="h2DateDetailInformationForWorkerDay"></h2>
+            </div>
+            <div id="containerDiagramsForDetailInformationWorkerDay" class="container-diagrams"> </div>
+        </div>
+        <div class="info-part">
+            <div>
+                <div id="containerMachineInformationForDayForWorkerDetailInformation" class="display-none"> </div> 
+                <div id="containerGeneralInformationForDayForWorkerDetailInformation"> </div> 
+            </div>
+            <div onclick="closeAllertForDetailsInformationForWorkerForWorkDay()" class="button-close">Закрыть</div>  
+        </div>
+    </div>
+
+    <div id="allertDetailInformationForWorkerMounth" class="alert-window display-none allert-diagrams">
+        <div class="diagrams-part">
+            <div class="title-container">
+                <h2 id="h2NameWorkerDetailInformationForMounth"></h2>
+                <h2 id="h2DateDetailInformationForMounth"></h2>
+            </div>
+            <div id="containerDiagramsForDetailInformationMounthWorker" class="container-diagrams"> </div>
+        </div>
+        <div class="info-part">
+            <div>
+                <div id="containerDayInformationForMounthForWorkerDetailInformation" class="display-none"> </div>
+                <div id="containerGeneralInformationForMounthForWorkerDetailInformation"> </div> 
+            </div>
+            <div onclick="closeAllertForDetailsInformationForWorkerForMounth()" class="button-close">Закрыть</div>  
+        </div>
+    </div>
+
+    <div id="allertDetailInformationForWorkerPeriod" class="alert-window display-none allert-diagrams">
+        <div class="diagrams-part">
+            <div class="title-container">
+                <h2 id="h2NameWorkerDetailInformationForPeriod"></h2>
+                <h2 id="h2DateDetailInformationForPeriod"></h2>
+            </div>
+            <div id="containerDiagramsForDetailInformationPeriodWorker" class="container-diagrams"> </div>
+        </div>
+        <div class="info-part">
+            <div>
+                <div id="containerDayInformationForPeriodForWorkerDetailInformation" class="display-none"> </div>
+                <div id="containerGeneralInformationForPeriodForWorkerDetailInformation"> </div> 
+            </div>
+            <div class="button-close">Закрыть</div>  
+        </div>
+    </div>
+
+
+<script>
+    selectPanel('workers-panel');
+
+    let selectedWorkerForGetMoreInfo = '';
+    let selectedDetailForGetMoreInfo = '';
+    let selectedPathMachineForGetMoreInfo = '';
+
+    let workerObjForDetailInformation = {};
+    
+    let arraySelectedMounthsForDetailInformation = [];
+    let indexSelectedMountForDetailInformation = 0;
+
+
+    function selectPanel(selectedPanel) {
+        const listPanels = ['workers-panel', 'machines-panel', 'details-panel'];
+        listPanels.forEach(panel => {
+            document.querySelector(`#${panel}`).classList.add('display-none');
+        });
+
+        if(selectedPanel == 'workers-panel'){
+            printWorkersPanel();
+        } else if(selectedPanel == 'machines-panel'){
+            printMachinesPanel();
+        } else if(selectedPanel == 'details-panel'){
+            printDetailsPanel();
+        }
+    }
+
+    function printWorkersPanel(){
+        document.querySelector('#h2TitlePanel').textContent = `Работники`;
+        document.querySelector('#workers-panel').classList.remove('display-none');
+        printTableWorkersPanel();
+
+        function printTableWorkersPanel(){
+            const bodyTableWorkers = document.querySelector(`#tb-workers-table`);
+            listenToFirebase(`workers`, data => {
+                if(!data){
+                    bodyTableWorkers.innerHTML = `<tr><td colspan='5'>Нет данных</td></tr>`;
+                    return;
+                }
+
+                bodyTableWorkers.innerHTML = '';
+                const timeNow = Date.now();
+
+                Object.values(data).forEach(worker => {
+                    const statusClass = worker.status === "На работе" ? "green-allocation" : "";
+                    const time = formatDate(worker.dateActualyWorkDay);
+                    let actualyPlaces = '';
+
+                    if(worker.status == 'На работе'){
+                        Object.values(worker.actualyLogs).forEach(log =>{
+                            actualyPlaces += `${log.machine} => ${log.detail} => ${log.install} <br/>`;
+                        })
+                    }
+                    // рабочие места смотреть сначала роль человека. если оператор то перебирать актуальные логи которые у него висят отбирать с типом machine и форматировать под нужный формат
+
+                    bodyTableWorkers.innerHTML += `
+                        <tr class="${statusClass}">
+                            <td>${worker.fio}</td>
+                            <td>${worker.status}</td>
+                            <td>${actualyPlaces}</td>
+                            <td>${formatDate(worker.dateActualyWorkDay)}</td>
+                            <td style="text-align: center;"><i onclick="clickMoreInfoForWorker('${transliterate(worker.fio)}')" class="fas fa-info-circle"></i></td>
+                        </tr>
+                    `;
+                })
+
+            });
+
+            
+        }
+    }
+
+    function printMachinesPanel(){
+        document.querySelector('#h2TitlePanel').textContent = `Станки`;
+        document.querySelector('#machines-panel').classList.remove('display-none');
+        printTableMachinePanel();
+        printSelectTypesMachines();
+
+        function printTableMachinePanel(){
+            const containerTablesMachines = document.querySelector('#containerTablesMachines');
+            listenToFirebase('machines', (data) => {
+                if (!data) {
+                    console.warn('Нет данных в Firebase');
+                    return;
+                }
+                
+                containerTablesMachines.innerHTML = ''; // Очищаем контейнер перед добавлением
+                
+                Object.keys(data).forEach(categoryKey => {
+                    const category = data[categoryKey];
+                    if (!category.name || !category.machines) return;
+                    
+                    const tableDiv = document.createElement('div');
+                    tableDiv.classList.add('div-white-bg');
+                    
+                    const title = document.createElement('h2');
+                    title.textContent = category.name;
+                    tableDiv.appendChild(title);
+                    
+                    const table = document.createElement('table');
+                    table.innerHTML = `
+                        <thead>
+                            <tr>
+                                <th>Название станка</th>
+                                <th>Статус</th>
+                                <th>Деталь</th>
+                                <th>Установка</th>
+                                <th>Время установки</th>
+                                <th>Оператор</th>
+                                <th>Наладчик</th>
+                                <th>УП</th>
+                                <th>Время</th>
+                                <th>Инфо</th>
+                            </tr>
+                        </thead>
+                    `;
+                    
+                    const tbody = document.createElement('tbody');
+                    Object.keys(category.machines).forEach(machineKey => {
+                        const machine = category.machines[machineKey];
+                        const row = document.createElement('tr');
+                        
+                        if (machine.status === 'Занят') {
+                            row.classList.add('green-allocation');
+                        } else if (machine.status === 'Настройка') {
+                            row.classList.add('yellow-table');
+                        }
+                        
+                        row.innerHTML = `
+                            <td>${machine.name}</td>
+                            <td>${machine.status}</td>
+                            <td>${machine.detail}</td>
+                            <td>${machine.install}</td>
+                            <td>Время установки</td>
+                            <td>${machine.operator}</td>
+                            <td>${machine.naladchik}</td>
+                            <td>${machine.up}</td>
+                            <td>Время</td>
+                            <td style="text-align: center;"><i onclick="clickMoreInfoMachine('${categoryKey}', '${machineKey}')" class="fas fa-info-circle"></i></td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    
+                    table.appendChild(tbody);
+                    tableDiv.appendChild(table);
+                    containerTablesMachines.appendChild(tableDiv);
+                });
+            });
+        }
+
+        function printSelectTypesMachines() {
+            console.log(`Отрисовка селект`)
+            const selectTypesMachinesForAddMachine = document.querySelector('#selectTypesMachinesForAddMachine');
+            let res = '<option value="">Выберите тип станка</option>';
+            
+            readToFirebase('machines', (data) => {
+                Object.entries(data).forEach(([key, value]) => {
+                    res += `<option value="${key}">${value.name}</option>`;
+                });
+                selectTypesMachinesForAddMachine.innerHTML = res;
+            });
+        }
+    }
+
+    function printDetailsPanel(){
+        document.querySelector('#h2TitlePanel').textContent = `Детали`;
+        document.querySelector('#details-panel').classList.remove('display-none');
+        localStorage.setItem('countInstalls', 1);
+        printInstallsPanel();
+        printTableDetails();
+
+        function printTableDetails(){
+            const bodyTableDetails = document.querySelector('#tb-details-table');
+            bodyTableDetails.innerHTML = '';
+
+            readToFirebase('details', data => {
+                if (!data) {
+                    bodyTableDetails.innerHTML = `<tr><td colspan='5'>Нет данных</td></tr>`;
+                    return;
+                }
+
+                bodyTableDetails.innerHTML = '';
+
+                Object.entries(data).forEach(([key, detail]) => {
+                    let installPromises = Object.values(detail.installs).map(install => {
+                        return new Promise(resolve => {
+                            readToFirebase(`machines/${install.typeMachines}/name`, typeName => {
+                                resolve(`${install.name}(${typeName})`);
+                            });
+                        });
+                    });
+
+                    Promise.all(installPromises).then(instsArray => {
+                        let insts = instsArray.join('<br/>');
+
+                        bodyTableDetails.innerHTML += `
+                            <tr>
+                                <td>${detail.name}</td>    
+                                <td>${detail.countInstalls}</td>    
+                                <td>${insts}</td>    
+                                <td onclick="clickMoreInfoDetail('${key}')" style="text-align: center;"><i class="fas fa-info-circle"></i></td>  
+                            </tr>
+                        `;
+                    });
+                });
+
+            });
+        }
+
+    }
+
+    function printInstallsPanel(){
+        const countInstalls = localStorage.getItem('countInstalls');
+        console.log('Отрисовка установок деталей: ' + countInstalls);
+
+        const containerInstalledAddNewDetail = document.querySelector('#containerInstalledAddNewDetail');
+
+        containerInstalledAddNewDetail.innerHTML = '';  // очищаем контейнер перед отрисовкой новых данных
+
+        readToFirebase('machines', (data) => {
+            // Формируем HTML для селектов
+            let htmlForSelect = '<option value="">Выберите тип станков</option>';
+            Object.entries(data).forEach(([key, value]) => {
+                htmlForSelect += `<option value="${key}">${value.name}</option>`;
+            });
+
+            // Генерируем установки
+            for (let i = 0; i < countInstalls; i++) {
+                containerInstalledAddNewDetail.innerHTML += `
+                <h5 style="color: #0665d0; margin-top: 25px;">Установка №${i + 1}</h5>
+                <h5>Название установки</h5>
+                <input id='inputInstallName${i}' style="margin-bottom: 10px;" type="text">
+                <h5>Выберите группу станков</h5>
+                <select id='selectInstallTypeMachine${i}'>${htmlForSelect}</select>
+                `;
+            }
+        });
+    }
+
+    function clickAddInstallForDetail(){
+        localStorage.setItem('countInstalls', Number(localStorage.getItem('countInstalls'))+1);
+        printInstallsPanel();
+    }
+
+    function addNewWorker(){ // кинуть проверку что бы поля были заполнены, и очистку полей после того как записалось.
+        const inputNameWorker = document.querySelector('#inputNameAddNewWorker');
+        const selectRoleAddNewWorker = document.querySelector('#selectRoleAddNewWorker');
+
+        if(inputNameWorker.value.length > 4 && selectRoleAddNewWorker.value != ''){
+            const path = `workers/${transliterate(inputNameWorker.value)}`;
+            const obj = {
+                fio: inputNameWorker.value,
+                status: 'Нет на работе',
+                role: selectRoleAddNewWorker.value,
+                dateActualyWorkDay: '',
+                actualyLogs: '',
+            }
+
+            writeToFirebase(path, obj);
+            inputNameWorker.value = '';
+            selectRoleAddNewWorker.value = '';
+        }
+    }
+
+    function addNewMachineGroup(){
+        const inputNameGroup = document.querySelector('#inputNameNewTypeMachine');
+        if(inputNameGroup.value.length > 3){
+            const path = `machines/${transliterate(inputNameGroup.value)}`;
+            const obj = {
+                name: inputNameGroup.value
+            }
+
+            writeToFirebase(path, obj);
+            inputNameGroup.value = '';
+        }
+
+    }
+
+    function addNewMachine(){
+        const inputNameNewMachine = document.querySelector('#inputNameNewMachine');
+        const selectTypesMachinesForAddMachine = document.querySelector('#selectTypesMachinesForAddMachine');
+
+        if(inputNameNewMachine.value.length > 3 && selectTypesMachinesForAddMachine.value != ''){
+            const path = `machines/${selectTypesMachinesForAddMachine.value}/machines/${transliterate(inputNameNewMachine.value)}`;
+            
+            const obj = {
+                name: inputNameNewMachine.value,
+                status: 'Выключен',
+                detail: '-',
+                install: '-',
+                operator: '-',
+                naladchik: '-',
+                startTime: '-',
+                up: '-',
+                timeDetail: '-',
+                timeChangeDetail: '-',
+                dateNaladki: '-',
+                typeMachine: selectTypesMachinesForAddMachine.value
+            }
+
+            writeToFirebase(path, obj);
+
+            inputNameNewMachine.value = '';
+            selectTypesMachinesForAddMachine.value = '';
+        }
+    }
+
+    function clickMoreInfoWorker(name){
+        document.querySelector('#allertMoreInfoWorker').classList.remove('display-none');
+        document.querySelector('#bg-allert').classList.remove('display-none');
+        readToFirebase(`workers/${name}`, worker => {
+            selectedWorkerForGetMoreInfo = name;
+            document.querySelector('#h2WorkerNameMoreInfo').textContent = worker.fio;
+            document.querySelector('#containerMoreInfoWorkDays').innerHTML = '';
+            // тут можно подтягивать фотку
+        });
+    }
+
+    function getWorkerLogsByDate() {
+        const containerMoreInfoWorkDays = document.querySelector('#containerMoreInfoWorkDays');
+        containerMoreInfoWorkDays.innerHTML = ''; // Очищаем контейнер перед добавлением новых данных
+
+        const startDate = getDateValueInInput('inputStartDateMoreInfoWorker');
+        const endDate = getDateValueInInput('inputEndDateMoreInfoWorker');
+
+        let countSecondsAllWorkDays = 0;
+
+        readFirebaseByKeyRange(`workers/${selectedWorkerForGetMoreInfo}/logs`, startDate, endDate, daysLogs => {
+            Object.values(daysLogs).forEach(dayLog => {
+                console.log('Вот лог который подходит по дате: ' + JSON.stringify(dayLog, null, 2));
+                if (dayLog.typeLog === 'Конец рабочего дня') {
+                    countSecondsAllWorkDays += dayLog.endWorkDay - dayLog.startWorkDay;
+                    let htmlday = `
+                    <div class="day-block">
+                        <h3>Смена ${formatDate(dayLog.startWorkDay)} - ${formatDate(dayLog.endWorkDay)}. Часы: ${getTimeDifference(dayLog.endWorkDay, dayLog.startWorkDay)}</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Время</th>
+                                    <th>Время станка</th>
+                                    <th>Станок</th>
+                                    <th>Деталь</th>
+                                    <th>Установка</th>
+                                    <th>Время детали</th>
+                                    <th>Норма</th>
+                                    <th>Выполнено</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    // Получаем логи для этой смены
+                    readFirebaseByKeyRange(`workers/${selectedWorkerForGetMoreInfo}/logs`, dayLog.startWorkDay, dayLog.endWorkDay, async logs => {
+                        let logRows = [];
+                        let promises = [];
+
+                        for (let log of Object.values(logs)) {
+                            if (log.typeLog == 'станок' || log.typeLog == 'Производство') {
+                                const normaCountDetails = Math.round(Math.round((Number(log.endTime) - Number(log.startTime)) / 1000) / (minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail)));
+                                let classStatusLog = normaCountDetails <= log.countDetails ? 'norm-ok' : 'norm-fail';
+
+                                logRows.push(`
+                                    <tr class="${classStatusLog}">
+                                        <td>${formatDate(log.startTime)}</td>
+                                        <td>${getTimeDifference(log.endTime, log.startTime)}</td>
+                                        <td>${secondsToTimeFormat(Number(log.countDetails) * (minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail)))}</td>
+                                        <td>${log.machine}</td>
+                                        <td>${log.detail}</td>
+                                        <td>${log.install}</td>
+                                        <td>${log.timeDetail + `(${log.timeChangeDetail})`}</td>
+                                        <td>${normaCountDetails}</td>
+                                        <td>${log.countDetails}</td>
+                                    </tr>
+                                `);
+                            } else if (log.typeLog == 'настройка станка') {
+                                let promise = new Promise(resolve => {
+                                    readToFirebase(`${log.machinePath}/name`, machineName => {
+                                        logRows.push(`
+                                            <tr style="background-color: #fff3cd; color: #856404">
+                                                <td>${formatDate(log.dateNaladki)}</td>
+                                                <td colspan="2">Настройка</td>
+                                                <td>${machineName}</td>
+                                                <td>${log.detail}</td>
+                                                <td>${log.install}</td>
+                                                <td>${log.timeDetail + `(${log.timeChangeDetail})`}</td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        `);
+                                        resolve(); // Завершаем промис после загрузки данных
+                                    });
+                                });
+
+                                promises.push(promise);
+                            }
+                        }
+
+                        // Ждём завершения всех асинхронных запросов
+                        await Promise.all(promises);
+
+                        // Теперь добавляем в контейнер
+                        htmlday += logRows.join('') + '</tbody></table></div>';
+                        containerMoreInfoWorkDays.innerHTML += htmlday;
+                    });
+
+                }
+            });
+        });
+
+        document.querySelector('#spanTotalWorkTimer').textContent = secondsToTimeFormat(countSecondsAllWorkDays);
+    }
+
+    function addNewDetail(){ // сделать проверку что бы были заполнены все поля
+        const inputNameNewDetail = document.querySelector('#inputNameNewDetail');
+        const countInstallations = localStorage.getItem('countInstalls');
+        let objNewDetail = { 
+            name: inputNameNewDetail.value,
+            countInstalls: countInstallations,
+            installs: []
+        }
+        
+        for(let i = 0; i < countInstallations; i++){
+            if(!objNewDetail.installs[i]){
+                objNewDetail.installs[i] = {};
+            }
+
+            const inputNameInstallation = document.querySelector(`#inputInstallName${i}`);
+            const selectTypeMachinesInstallation = document.querySelector(`#selectInstallTypeMachine${i}`);
+
+            objNewDetail.installs[i] = {
+                name: inputNameInstallation.value,
+                typeMachines: selectTypeMachinesInstallation.value
+            };
+        }
+
+        console.log('Новая деталь: ' + JSON.stringify(objNewDetail, null, 0));
+        writeToFirebase(`details/${transliterate(inputNameNewDetail.value)}`, objNewDetail);
+        localStorage.setItem('countInstalls', 1);
+        printInstallsPanel();
+        inputNameNewDetail.value = '';
+    }
+
+    function closeAllAllerts(){
+        const listAllerts = ['bg-allert', 'allertMoreInfoWorker', 'allertMoreInfoMachine', 'allertMoreInfoDetail', 
+        `allertNewSelectDateForWorkerInfo`, `allertDetailInformationForWorker`, `allertDetailInFormationForWorkerDay`, 
+        `allertDetailInformationForWorkerMounth`, `allertDetailInformationForWorkerPeriod`];
+
+        Object.values(listAllerts).forEach(allert => {
+            document.querySelector(`#${allert}`).classList.add('display-none');
+        })
+    }
+
+    function clickMoreInfoMachine(categoryKey, machineKey){
+        const allertMoreInfoMachine = document.querySelector('#allertMoreInfoMachine');
+        const bgAllert = document.querySelector('#bg-allert');
+
+        allertMoreInfoMachine.classList.remove('display-none');
+        bgAllert.classList.remove('display-none');
+
+        readToFirebase(`machines/${categoryKey}/machines/${machineKey}`, machine => {
+            document.querySelector('#h2MachineNameMoreInfo').textContent = machine.name;
+            selectedPathMachineForGetMoreInfo = `machines/${categoryKey}/machines/${machineKey}`;
+            document.querySelector('#containerMoreInfoForMachine').innerHTML = '';
+        });
+    }
+
+    function getMachineLogsByDate() {
+        const containerMoreInfoForMachine = document.querySelector('#containerMoreInfoForMachine');
+        containerMoreInfoForMachine.innerHTML = '';
+
+        const startDate = getDateValueInInput('inputStartDateMoreInfoMachine');
+        const endDate = getDateValueInInput('inputEndDateMoreInfoMachine');
+
+        console.log(`Отображение логов для: ${selectedPathMachineForGetMoreInfo}. С: ${startDate} До: ${endDate}`);
+
+        readFirebaseByKeyRange(`${selectedPathMachineForGetMoreInfo}/logs`, startDate, endDate, logs => {
+            if (!logs || Object.keys(logs).length === 0) {
+                containerMoreInfoForMachine.innerHTML = '<p>Нет данных за выбранный период.</p>';
+                return;
+            }
+
+            let tableRows = Object.values(logs)
+                .map(log => {
+                    if (log.typeLog === 'Производство') {
+                        return `
+                            <tr class="${Math.round(((log.endTime - log.startTime) / 1000 ) / (minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail))) <= log.countDetails ? 'norm-ok' : 'norm-fail'}">
+                                <td>${formatDate(log.startTime)}</td>    
+                                <td>${getTimeDifference(log.endTime, log.startTime)}</td>    
+                                <td>${secondsToTimeFormat((minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail)) * log.countDetails)}</td>    
+                                <td>${log.operator}</td>    
+                                <td>${log.naladchik}</td>    
+                                <td>${log.detail}</td>    
+                                <td>${log.install}</td>    
+                                <td>${log.timeDetail} (${log.timeChangeDetail})</td>    
+                                <td>${Math.round(((log.endTime - log.startTime) / 1000 ) / (minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail)))}</td>    
+                                <td>${log.countDetails}</td>    
+                            </tr>
+                        `;
+                    } else if (log.typeLog === 'Настройка') {
+                        return `
+                            <tr style="background-color: #fff3cd; color: #856404;">
+                                <td>${formatDate(log.dateNaladki)}</td>    
+                                <td colspan="3">Настройка</td>       
+                                <td>${log.naladchik}</td>    
+                                <td>${log.detail}</td>    
+                                <td>${log.install}</td>    
+                                <td>${log.timeDetail} (${log.timeChangeDetail})</td>    
+                                <td colspan="2">-</td>    
+                            </tr>
+                        `;
+                    }
+                    return ''; // Если лог не "Производство" и не "Настройка"
+                })
+                .join(''); // Объединяем строки в одну строку
+
+            containerMoreInfoForMachine.innerHTML = `
+                <div class="day-block">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Время</th>
+                                <th>Время станка</th>
+                                <th>Оператор</th>
+                                <th>Наладчик</th>
+                                <th>Деталь</th>
+                                <th>Установка</th>
+                                <th>Время детали</th>
+                                <th>Норма</th>
+                                <th>Сделано</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        });
+    }
+
+    function clickMoreInfoDetail(detailName){
+        const allertMoreInfoDetail = document.querySelector('#allertMoreInfoDetail');
+        const bgAllert = document.querySelector('#bg-allert');
+
+        allertMoreInfoDetail.classList.remove('display-none');
+        bgAllert.classList.remove('display-none');
+
+        readToFirebase(`details/${detailName}`, detail => {
+            document.querySelector('#h2DetailNameMoreInfo').textContent = detail.name;
+            selectedDetailForGetMoreInfo = detailName;
+            document.querySelector('#containerMoreInfoForDetail').innerHTML = '';
+        });
+    }
+
+    function getDetailLogsByDate(){
+        const containerMoreInfoForDetail = document.querySelector('#containerMoreInfoForDetail');
+        containerMoreInfoForDetail.innerHTML = '';
+
+        const startDate = getDateValueInInput('inputStartDateMoreInfoDetail');
+        const endDate = getDateValueInInput('inputEndDateMoreInfoDetail');
+
+        console.log(`Отображение логов для: ${selectedDetailForGetMoreInfo}. С: ${startDate} До: ${endDate}`);
+
+        readFirebaseByKeyRange(`details/${selectedDetailForGetMoreInfo}/logs`, startDate, endDate, logs => {
+            if(!logs){
+                containerMoreInfoForDetail.innerHTML = '<p>Нет данных за выбранный период.</p>';
+                return;
+            }
+            const logRows = Object.values(logs).map(log => {
+                if (log.typeLog === `Производство`) {
+                    return `
+                        <tr class="${Math.round(((log.endTime - log.startTime) / 1000 ) / (minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail))) <= log.countDetails ? 'norm-ok' : 'norm-fail'}">
+                            <td>${formatDate(log.startTime)}</td>
+                            <td>${getTimeDifference(log.endTime, log.startTime)}</td>
+                            <td>${secondsToTimeFormat(log.countDetails * (minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail)))}</td>
+                            <td>${log.operator}</td>
+                            <td>${log.naladchik}</td>
+                            <td>${log.install}</td>
+                            <td>${log.timeDetail}(${log.timeChangeDetail})</td>
+                            <td>${Math.round(((log.endTime - log.startTime) / 1000) / (minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail)))}</td>
+                            <td>${log.countDetails}</td>
+                        </tr>
+                    `;
+                } else if (log.typeLog === 'Настройка') {
+                    return `
+                        <tr style="background-color: #fff3cd; color: #856404">
+                            <td>${formatDate(log.dateNaladki)}</td>
+                            <td colspan="3">Настройка</td>
+                            <td>${log.naladchik}</td>
+                            <td>${log.install}</td>
+                            <td>${log.timeDetail}(${log.timeChangeDetail})</td>
+                            <td colspan="2">-</td>
+                        </tr>
+                    `;
+                }
+                return ''; // На случай, если вдруг другой тип лога
+            }).join(''); // Преобразуем массив строк в одну строку
+
+            containerMoreInfoForDetail.innerHTML = `
+                <div class="day-block">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Время</th>
+                                <th>Время станка</th>
+                                <th>Оператор</th>
+                                <th>Наладчик</th>
+                                <th>Установка</th>
+                                <th>Время детали</th>
+                                <th>Норма</th>
+                                <th>Сделано</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${logRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        });
+    }
+
+    function clickMoreInfoForWorker(name){
+        document.querySelector(`#allertNewSelectDateForWorkerInfo`).classList.remove('display-none');
+        document.querySelector(`#bg-allert`).classList.remove('display-none');
+        selectedWorkerForGetMoreInfo = name;
+
+        readToFirebase(`workers/${name}/fio`, fio => {
+            document.querySelector(`#bNameSelectedWorkerName`).innerHTML = fio;
+        });
+    }
+
+    function showDetailInfoForWorker(){ 
+        const inputStartDate = document.querySelector("#inputStartDateForUserDetailInfo");
+        const inputEndDate = document.querySelector("#inputEndDateForUserDetailInfo");
+        const allertDetailInformationForWorker = document.querySelector(`#allertDetailInformationForWorker`);
+
+        const startDateMs = new Date(inputStartDate.value).getTime();
+        const endDateMs = new Date(inputEndDate.value).getTime();
+
+        arraySelectedMounthsForDetailInformation = getMonthsInRange(startDateMs, endDateMs);
+        indexSelectedMount = 0;
+
+        console.log(`Нужно вывести детальную информацию: ${inputStartDate.value} - ${inputEndDate.value}. Для: ${selectedWorkerForGetMoreInfo}`);
+        console.log(`Месяца которые входят в этот промежуток: ${JSON.stringify(arraySelectedMounthsForDetailInformation, null, 2)}`);
+        //console.log(`${mounth.year} ${mounth.mounthNameUa} ${mounth.mounthNameRu} ${mounth.startOfMonth} ${mounth.endOfMonth}`);
+
+        readToFirebase(`workers/${selectedWorkerForGetMoreInfo}`, worker => {
+            workerObjForDetailInformation = worker;
+            document.querySelector(`#h2WorkerNameForDetailInformation`).textContent = worker.fio;
+            document.querySelector(`#h2RangeDatesSelectedWorkerDetailInformation`).textContent = `${formatedDateInNormalFormat(inputStartDate.value)} - ${formatedDateInNormalFormat(inputEndDate.value)}`;
+            allertDetailInformationForWorker.classList.remove('display-none');
+            printMountDetailInformationForWorker();
+        });
+    }
+
+    function changeMounthDetailInformationWorker(type){
+        if(type == 'next' && arraySelectedMounthsForDetailInformation.length - 1 > indexSelectedMountForDetailInformation){
+            indexSelectedMountForDetailInformation ++;
+        } else if(indexSelectedMountForDetailInformation > 0 && type == 'back') {
+            indexSelectedMountForDetailInformation --;
+        }
+        printMountDetailInformationForWorker();
+    }
+
+    async function printMountDetailInformationForWorker() {
+        const containerDatesCalendar = document.querySelector('#containerDatesCalendar');
+        containerDatesCalendar.innerHTML = '';
+
+        const selectedMounth = arraySelectedMounthsForDetailInformation[indexSelectedMountForDetailInformation];
+
+        document.querySelector(`#h3SelectedYearForDetailInformationWorker`).textContent = selectedMounth.year;
+        document.querySelector(`#h3SelectedMounthUaForDetailInformationWorker`).textContent = selectedMounth.mounthNameUa;
+        document.querySelector(`#h3SelectedMounthRuForDetailInformationWorker`).textContent = selectedMounth.mounthNameRu;
+
+        // Получаем массив дней с учетом асинхронной логики
+        const arrayDays = await getDaysInRange(selectedMounth.startOfMonth, selectedMounth.endOfMonth);
+
+        // Получаем день недели для первого дня месяца (0 - воскресенье, 1 - понедельник и т.д.)
+        const firstDayOfMonth = new Date(selectedMounth.startOfMonth).getDay();
+
+        // Добавляем пустые элементы в начале, в зависимости от того, с какого дня недели начинается месяц
+        for (let i = 1; i < firstDayOfMonth; i++) {
+            containerDatesCalendar.innerHTML += `
+                <div>
+                    <div class="container"></div>
+                </div>
+            `;
+        }
+
+        // Перебираем дни месяца и добавляем их в таблицу
+        for (const day of arrayDays) {
+            // Фильтруем и сортируем логи для данного дня
+            const logs = await filterAndSortByKeyRange(day.startDateMs, day.endDateMs, workerObjForDetailInformation.logs);
+            let timerDay = '';
+            let arrayCoefficients = [];
+            let startWorkDay = 0;
+            let endWorkDay = 0;
+            try {
+                for (const log of logs) {
+                    if (log.typeLog == 'Конец рабочего дня') {
+                        timerDay = getTimeDifference(log.endWorkDay, log.startWorkDay);
+                        startWorkDay = log.startWorkDay;
+                        endWorkDay = log.endWorkDay;
+                    } else if (log.typeLog == 'Производство') {
+                        let machineTime = Number(log.countDetails) * (minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail));
+                        let timer = (Number(log.endTime) - Number(log.startTime)) / 1000;
+                        let res = machineTime / timer;
+                        arrayCoefficients.push(res);
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+            }
+
+            // Добавляем в DOM информацию о дне
+            containerDatesCalendar.innerHTML += `
+                <div onclick="openAllertDetailInFormationForWorkerDay('${startWorkDay}', '${endWorkDay}')" style="background-color: ${getColorForCoefficient(arrayCoefficients.length ? (parseFloat((arrayCoefficients.reduce((acc, num) => acc + num, 0) / arrayCoefficients.length).toFixed(2))) : 0)}" class='item'>
+                    <div class='container'>
+                        <h3>${day.day}</h3>
+                        <p>${timerDay}</p>
+                        <p>${arrayCoefficients.length ? (parseFloat((arrayCoefficients.reduce((acc, num) => acc + num, 0) / arrayCoefficients.length).toFixed(2))) : ""}</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    async function openAllertDetailInFormationForWorkerDay(startWorkDay, endWorkDay) {
+        console.log(`Выбрал день для отображения детальной информации. Начало дня: ${startWorkDay}. Конец: ${endWorkDay}`);
+        
+        // Показываем/скрываем элементы
+        document.querySelector(`#allertDetailInFormationForWorkerDay`).classList.remove(`display-none`);
+        document.querySelector(`#allertDetailInformationForWorker`).classList.add(`display-none`);
+        document.querySelector('#containerMachineInformationForDayForWorkerDetailInformation').classList.add('display-none');
+        document.querySelector('#containerGeneralInformationForDayForWorkerDetailInformation').classList.remove('display-none');
+
+        // Обновляем данные заголовков
+        document.querySelector(`#h2NameWorkerDetailInformationForWorkerDay`).textContent = workerObjForDetailInformation.fio;
+        document.querySelector(`#h2DateDetailInformationForWorkerDay`).textContent = formatedDate(Number(endWorkDay));
+
+        // Ждем завершения асинхронной функции filterAndSortByKeyRange
+        const logs = await filterAndSortByKeyRange(startWorkDay, endWorkDay, workerObjForDetailInformation.logs);
+        
+        let detailsHtml = '';
+        let diagramsHtml = '';
+        
+        // Перебираем логи, если они есть
+        for (let [index, log] of logs.entries()) { // Используем entries() для получения индекса и значения
+            if (log.typeLog == 'Производство') {
+                detailsHtml += `
+                    <div class="container-info">
+                        <p>${log.detail} ( ${log.install} ):</p>
+                        <span>${log.countDetails} шт.</span>
+                    </div>
+                `;
+
+                const countProcentResult = Math.round(Number(log.countDetails / (((Number(log.endTime) - Number(log.startTime)) / 1000) / (minSecToSeconds(log.timeDetail) + minSecToSeconds(log.timeChangeDetail)))));
+
+                diagramsHtml += `
+                    <div onclick="changeInformationToMachineForWorkerDetailsInformation('${log.machine}', '${log.timeDetail}', '${log.timeChangeDetail}', '${log.detail}', '${log.install}', '${log.countDetails}', '${log.naladchik}', '${log.dateNaladki}')" class="item">
+                        <div class="bg-diagram">
+                            <div style='height: ${countProcentResult}%' class="result">${countProcentResult}%</div>
+                        </div>
+                        <p>${log.machine}</p>
+                    </div>
+                `;
+            }
+        }
+
+
+        // Обновляем контейнер с детальной информацией о дне
+        document.querySelector(`#containerGeneralInformationForDayForWorkerDetailInformation`).innerHTML = `
+            <h5>Детальная информация</h5>
+            <div class="container-info">
+                <p>Начало смены:</p>
+                <span>${formatDate(Number(startWorkDay))}</span>
+            </div>
+            <div class="container-info">
+                <p>Конец смены:</p>
+                <span>${formatDate(Number(endWorkDay))}</span>
+            </div>
+            <div class="container-info">
+                <p>Продолжительность смены:</p>
+                <span>${secondsToTimeFormat(Number(endWorkDay) - Number(startWorkDay))}</span>
+            </div>
+            <div class="container-info">
+                <p><b>Изготовленные детали:</b></p>
+            </div>
+            ${detailsHtml}
+        `;
+
+        document.querySelector(`#containerDiagramsForDetailInformationWorkerDay`).innerHTML = diagramsHtml;
+    }
+
+    function changeInformationToMachineForWorkerDetailsInformation(machine, timeDetail, timeChangeDetail, detail, install, countDetails, naladchik, dateNaladki){
+        const containerMachineInformationForDayForWorkerDetailInformation = document.querySelector('#containerMachineInformationForDayForWorkerDetailInformation');
+        document.querySelector('#containerGeneralInformationForDayForWorkerDetailInformation').classList.add('display-none');
+        containerMachineInformationForDayForWorkerDetailInformation.classList.remove('display-none');
+        containerMachineInformationForDayForWorkerDetailInformation.innerHTML = `
+            <h5>${machine}</h5>
+            <div class="container-info">
+                <p>Время детали:</p>
+                <span>${timeDetail}</span>
+            </div>
+            <div class="container-info">
+                <p>Время замены детали:</p>
+                <span>${timeChangeDetail}</span>
+            </div>
+            <div class="container-info">
+                <p>Деталь:</p>
+                <span>${detail}</span>
+            </div>
+            <div class="container-info">
+                <p>Установка:</p>
+                <span>${install}</span>
+            </div>
+            <div class="container-info">
+                <p>Время работы на станке:</p>
+                <span>-</span>
+            </div>
+            <div class="container-info">
+                <p>Время работы станка:</p>
+                <span>-</span>
+            </div>
+            <div class="container-info">
+                <p>Норма деталей:</p>
+                <span>-</span>
+            </div>
+            <div class="container-info">
+                <p>Сделано деталей:</p>
+                <span>${countDetails}</span>
+            </div>
+            <div class="container-info">
+                <p>Наладчик:</p>
+                <span>${naladchik}</span>
+            </div>
+            <div class="container-info">
+                <p>Дата наладки:</p>
+                <span>${dateNaladki}</span>
+            </div>
+        `;
+    }
+
+    function closeAllertForDetailsInformationForWorkerForWorkDay(){
+        document.querySelector('#allertDetailInFormationForWorkerDay').classList.add('display-none');
+        document.querySelector('#allertDetailInformationForWorker').classList.remove('display-none');
+    }
+
+    async function openAllertDetailInFormationForWorkerMounth(){
+        document.querySelector('#allertDetailInformationForWorkerMounth').classList.remove('display-none');
+        document.querySelector('#allertDetailInformationForWorker').classList.add('display-none');
+         
+        document.querySelector('#containerDayInformationForMounthForWorkerDetailInformation').classList.add('display-none');
+        document.querySelector('#containerGeneralInformationForMounthForWorkerDetailInformation').classList.remove('display-none');
+
+        document.querySelector(`#h2NameWorkerDetailInformationForMounth`).textContent = workerObjForDetailInformation.fio;
+        document.querySelector(`#h2DateDetailInformationForMounth`).textContent = `${arraySelectedMounthsForDetailInformation[indexSelectedMountForDetailInformation].mounthNameUa}`;
+
+        const containerDiagramsForDetailInformationMounthWorker = document.querySelector(`#containerDiagramsForDetailInformationMounthWorker`);
+
+        const containerGeneralInformationForMounthForWorkerDetailInformation = document.querySelector(`#containerGeneralInformationForMounthForWorkerDetailInformation`);
+
+        containerDiagramsForDetailInformationMounthWorker.innerHTML = '';
+        containerGeneralInformationForMounthForWorkerDetailInformation.innerHTML = '';
+
+        let htmlDiagrams = ``;
+
+        const allLogsSelectedMounth = await filterAndSortByKeyRange(arraySelectedMounthsForDetailInformation[indexSelectedMountForDetailInformation].startOfMonth, arraySelectedMounthsForDetailInformation[indexSelectedMountForDetailInformation].endOfMonth, workerObjForDetailInformation.logs);
+        let logsEndWorksDays = [];
+
+        let arrayProcentsResultsDays = [];
+        let arrayTimesWorkDays = [];
+        let arrayDetails = [];
+
+        // находим логи конца дня за весь месяц
+        for(index in allLogsSelectedMounth){
+            const log = allLogsSelectedMounth[index];
+            if(log.typeLog == `Конец рабочего дня`){
+                logsEndWorksDays.push(log);
+            } 
+        }
+
+        // перебираем все логи конца рабочего дня и выводим по ним информацию
+        for(index in logsEndWorksDays){
+            const logWorkDay = logsEndWorksDays[index];
+            // добавляем продолжительность этого дня в милисекундах
+            arrayTimesWorkDays.push(Number(logWorkDay.endWorkDay) - Number(logWorkDay.startWorkDay));
+
+            // получаем логи по этому рабочему дню
+            const logsThisWorkDay = await filterAndSortByKeyRange(logWorkDay.startWorkDay, logWorkDay.endWorkDay, workerObjForDetailInformation.logs);
+            
+            const procentsResultsThisDay = [];
+
+            let arrayDetailsThisDay = [];
+
+            for(index in logsThisWorkDay){
+                const log = logsThisWorkDay[index];
+                if(log.typeLog == 'Производство'){
+                    const workTime = Math.round(((Number(log.endTime) - Number(log.startTime)) / 1000));
+                    const machineWork = Number(log.countDetails) * (Number(minSecToSeconds(log.timeDetail)) + Number(minSecToSeconds(log.timeChangeDetail)));
+                    const procentResult = Math.round(machineWork / workTime * 100);
+                    procentsResultsThisDay.push(procentResult);  
+                    const objDetail = {
+                        installName: `${log.detail} (${log.install})`,
+                        countDetails: log.countDetails
+                    }      
+                    arrayDetails.push(objDetail);  
+                    arrayDetailsThisDay.push(objDetail);      
+                }
+            }
+
+            const procentResult = calculateAverage(procentsResultsThisDay);
+            arrayProcentsResultsDays.push(procentResult);
+            htmlDiagrams += `
+                    <div onclick="changeInformationToDayForWorkerDetailsInformation('${logWorkDay.startWorkDay}', '${logWorkDay.endWorkDay}', '${procentResult}')" class="item">
+                    <div class="bg-diagram">
+                        <div style="height: ${procentResult}%" class="result">${procentResult}%</div>
+                    </div>
+                    <p>${getDayInDateNow(logWorkDay.endWorkDay)}</p>
+                </div>
+            `;
+        }
+
+        // отрисовываются диаграммы
+        containerDiagramsForDetailInformationMounthWorker.innerHTML = htmlDiagrams;
+        
+        let htmlDetails = '';
+        let detailsSummary = {};
+
+        for (let index in arrayDetails) {
+            const item = arrayDetails[index];
+            if (detailsSummary[item.installName]) {
+                detailsSummary[item.installName] += item.countDetails;
+            } else {
+                detailsSummary[item.installName] = item.countDetails;
+            }
+        }
+
+        for (let installName in detailsSummary) {
+            htmlDetails += `
+                <div class="container-info">
+                    <p>${installName}:</p>
+                    <span>${detailsSummary[installName]} шт.</span> 
+                </div>
+            `;
+        }
+        // отрисовывается общая информация по месяцу
+        containerGeneralInformationForMounthForWorkerDetailInformation.innerHTML = `
+            <h5>Детальная информация</h5>
+            <div class="container-info">
+                <p>Количество часов:</p>
+                <span>${secondsToTimeFormat(arrayTimesWorkDays.reduce((acc, num) => acc + num, 0) / 1000)}</span>
+            </div>
+            <div class="container-info">
+                <p>Количество рабочих смен:</p>
+                <span>${arrayTimesWorkDays.length}</span>
+            </div>
+            <div class="container-info">
+                <p>Средняя продолжительность смены:</p>
+                <span>${secondsToTimeFormat(calculateAverage(arrayTimesWorkDays) / arrayTimesWorkDays.length / 1000)}</span>
+            </div>
+            <div class="container-info">
+                <p>Средний показатель успешности:</p>
+                <span>${calculateAverage(arrayProcentsResultsDays)}%</span>
+            </div>
+            <h5>Изготовленные детали:</h5>
+            ${htmlDetails}
+        `;
+    }
+
+    function changeInformationToDayForWorkerDetailsInformation(startWorkDay, endWorkDay, procentResult){
+        const containerDayInformationForMounthForWorkerDetailInformation = document.querySelector(`#containerDayInformationForMounthForWorkerDetailInformation`);
+        document.querySelector(`#containerGeneralInformationForMounthForWorkerDetailInformation`).classList.add('display-none');
+        containerDayInformationForMounthForWorkerDetailInformation.classList.remove('display-none');
+
+        containerDayInformationForMounthForWorkerDetailInformation.innerHTML = ``;
+
+    
+        containerDayInformationForMounthForWorkerDetailInformation.innerHTML = `
+            <h5>${getDayAndMounthInDateNow(Number(endWorkDay))}</h5>
+            <div class="container-info">
+                <p>Продолжительность смены:</p>
+                <span>${secondsToTimeFormat((endWorkDay - startWorkDay) / 1000)}</span>
+            </div>
+            <div class="container-info">
+                <p>Начало смены:</p>
+                <span>${getHoursAndMinutesInDateNow(Number(startWorkDay))}</span>
+            </div>
+            <div class="container-info">
+                <p>Конец смены:</p>
+                <span>${getHoursAndMinutesInDateNow(Number(endWorkDay))}</span>
+            </div>
+            <div class="container-info">
+                <p>Средний показатель продуктивности:</p>
+                <span>${procentResult}%</span>
+            </div>
+        `;
+    }
+
+    function closeAllertForDetailsInformationForWorkerForMounth(){
+        document.querySelector('#allertDetailInformationForWorker').classList.remove('display-none');
+        document.querySelector('#allertDetailInformationForWorkerMounth').classList.add('display-none');
+    }
+    // переделать на период
+    async function openAllertDetailInformationForWorkerPeriod(){
+        document.querySelector('#allertDetailInformationForWorkerPeriod').classList.remove('display-none');
+        document.querySelector('#allertDetailInformationForWorker').classList.add('display-none');
+         
+        document.querySelector('#containerDayInformationForPeriodForWorkerDetailInformation').classList.add('display-none');
+        document.querySelector('#containerGeneralInformationForPeriodForWorkerDetailInformation').classList.remove('display-none');
+
+        const startPeriodTime = getDateValueInInput('inputStartDateForUserDetailInfo');
+        const endPeriodTime = getDateValueInInput('inputEndDateForUserDetailInfo');
+
+        document.querySelector(`#h2NameWorkerDetailInformationForPeriod`).textContent = workerObjForDetailInformation.fio;
+        document.querySelector(`#h2DateDetailInformationForPeriod`).textContent = `${formatedDate(Number(startPeriodTime))} - ${formatedDate(Number(endPeriodTime))}`;
+
+        const containerDiagramsForDetailInformationPeriodWorker = document.querySelector(`#containerDiagramsForDetailInformationPeriodWorker`);
+        const containerGeneralInformationForPeriodForWorkerDetailInformation = document.querySelector(`#containerGeneralInformationForPeriodForWorkerDetailInformation`);
+
+        containerDiagramsForDetailInformationPeriodWorker.innerHTML = '';
+        containerGeneralInformationForPeriodForWorkerDetailInformation.innerHTML = '';
+
+        let htmlDiagrams = ``;
+
+        const allLogsSelectedPeriod = await filterAndSortByKeyRange(startPeriodTime, endPeriodTime, workerObjForDetailInformation.logs);
+
+        let logsEndWorksDays = [];
+
+        let arrayProcentsResultsDays = [];
+        let arrayTimesWorkDays = [];
+        let arrayDetails = [];
+
+        for(index in allLogsSelectedPeriod){
+            const log = allLogsSelectedPeriod[index];
+            if(log.typeLog == 'Конец рабочего дня'){
+                logsEndWorksDays.push(log);
+            }
+        }
+
+        for(index in logsEndWorksDays){
+            const logWorkDay = logsEndWorksDays[index];
+            // добавляем продолжительность этого дня в милисекундах
+            arrayTimesWorkDays.push(Number(logWorkDay.endWorkDay) - Number(logWorkDay.startWorkDay));
+
+            // получаем логи по этому рабочему дню
+            const logsThisWorkDay = await filterAndSortByKeyRange(logWorkDay.startWorkDay, logWorkDay.endWorkDay, workerObjForDetailInformation.logs);
+
+            const procentsResultsThisDay = [];
+
+            let arrayDetailsThisDay = [];
+
+            // перебираем все логи конца рабочего дня и выводим по ним информацию
+            for(index in logsEndWorksDays){
+                const logWorkDay = logsEndWorksDays[index];
+                // добавляем продолжительность этого дня в милисекундах
+                arrayTimesWorkDays.push(Number(logWorkDay.endWorkDay) - Number(logWorkDay.startWorkDay));
+
+                // получаем логи по этому рабочему дню
+                const logsThisWorkDay = await filterAndSortByKeyRange(logWorkDay.startWorkDay, logWorkDay.endWorkDay, workerObjForDetailInformation.logs);
+                
+                const procentsResultsThisDay = [];
+
+                let arrayDetailsThisDay = [];
+
+                for(index in logsThisWorkDay){
+                    const log = logsThisWorkDay[index];
+                    if(log.typeLog == 'Производство'){
+                        const workTime = Math.round(((Number(log.endTime) - Number(log.startTime)) / 1000));
+                        const machineWork = Number(log.countDetails) * (Number(minSecToSeconds(log.timeDetail)) + Number(minSecToSeconds(log.timeChangeDetail)));
+                        const procentResult = Math.round(machineWork / workTime * 100);
+                        procentsResultsThisDay.push(procentResult);  
+                        const objDetail = {
+                            installName: `${log.detail} (${log.install})`,
+                            countDetails: log.countDetails
+                        }      
+                        arrayDetails.push(objDetail);  
+                        arrayDetailsThisDay.push(objDetail);      
+                    }
+                }
+
+                const procentResult = calculateAverage(procentsResultsThisDay);
+                arrayProcentsResultsDays.push(procentResult);
+                htmlDiagrams += `
+                        <div onclick="changeInformationToDayForWorkerDetailsInformation('${logWorkDay.startWorkDay}', '${logWorkDay.endWorkDay}', '${procentResult}')" class="item">
+                        <div class="bg-diagram">
+                            <div style="height: ${procentResult}%" class="result">${procentResult}%</div>
+                        </div>
+                        <p>${getDayInDateNow(logWorkDay.endWorkDay)}</p>
+                    </div>
+                `;
+            }
+        }
+
+        containerDiagramsForDetailInformationPeriodWorker.innerHTML = htmlDiagrams;
+
+    }
+
+
+
+        // отрисовываются диаграммы
+        containerDiagramsForDetailInformationMounthWorker.innerHTML = htmlDiagrams;
+        
+        let htmlDetails = '';
+        let detailsSummary = {};
+
+        for (let index in arrayDetails) {
+            const item = arrayDetails[index];
+            if (detailsSummary[item.installName]) {
+                detailsSummary[item.installName] += item.countDetails;
+            } else {
+                detailsSummary[item.installName] = item.countDetails;
+            }
+        }
+
+        for (let installName in detailsSummary) {
+            htmlDetails += `
+                <div class="container-info">
+                    <p>${installName}:</p>
+                    <span>${detailsSummary[installName]} шт.</span> 
+                </div>
+            `;
+        }
+        // отрисовывается общая информация по месяцу
+        containerGeneralInformationForMounthForWorkerDetailInformation.innerHTML = `
+            <h5>Детальная информация</h5>
+            <div class="container-info">
+                <p>Количество часов:</p>
+                <span>${secondsToTimeFormat(arrayTimesWorkDays.reduce((acc, num) => acc + num, 0) / 1000)}</span>
+            </div>
+            <div class="container-info">
+                <p>Количество рабочих смен:</p>
+                <span>${arrayTimesWorkDays.length}</span>
+            </div>
+            <div class="container-info">
+                <p>Средняя продолжительность смены:</p>
+                <span>${secondsToTimeFormat(calculateAverage(arrayTimesWorkDays) / arrayTimesWorkDays.length / 1000)}</span>
+            </div>
+            <div class="container-info">
+                <p>Средний показатель успешности:</p>
+                <span>${calculateAverage(arrayProcentsResultsDays)}%</span>
+            </div>
+            <h5>Изготовленные детали:</h5>
+            ${htmlDetails}
+        `;
+
+</script>
+</body>
+</html>
