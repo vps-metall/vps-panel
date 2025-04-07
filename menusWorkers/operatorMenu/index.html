@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../styles.css" type="text/css">
+    <title>Меню Оператора</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="../../functions.js"></script>
+</head>
+<body>
+    <div id="mainContainer" class="display-none">
+        <div class="leftColumn">
+            <header><h5>Выберите пункт</h5></header>
+            <div class="main-part">
+                <div onclick="clickMenuMachines()" class="item">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fa-solid fa-gears"></i>
+                        <p>Станки</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div id="menuTypesMachines" class="div-menu-types-machines display-none"> </div>
+                <div class="item">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-wrench"></i>
+                        <p>Инструмент</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="centerColumn">
+            <header>
+                <h5 id="h5WorkerName"></h5>
+            </header>
+            <div class="title-div">
+                <h2 id="h2TitlePanel">Выберите пункт в меню слева</h2>
+            </div>
+            <div class="main-part">
+                <div id="machinesListPanel" class="display-none">
+                    <div class="div-white-bg">
+                        <input placeholder="Введите название станка для поиска..." type="text">
+                        <div id="containerMachines">
+                            <div class="div-machine">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h3>Станок №1</h3>
+                                    <div style="background-color: red;" class="stateMachine">Занят</div>
+                                </div>
+                                <div class="container">
+                                    <span>Деталь:</span>
+                                    <p>Наколювач</p>
+                                </div>
+                                <div class="container">
+                                    <span>Установка</span>
+                                    <p>Проход + Резьба</p>
+                                </div>
+                                <div class="container">
+                                    <span>Время детали:</span>
+                                    <p>4:43</p>
+                                </div>
+                                <div class="container">
+                                    <span>Время смены детали:</span>
+                                    <p>0:30</p>
+                                </div>
+                                <div class="container">
+                                    <span>Наладчик:</span>
+                                    <p>Дегтярь В.В.</p>
+                                </div>
+                                <div class="container">
+                                    <span>Дата наладки:</span>
+                                    <p>20.03.2025</p>
+                                </div>
+                                <button style="background-color: red;">Больше информации</button>
+                            </div>
+                            <div class="div-machine">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h3>Станок №1</h3>
+                                    <div style="background-color: green;" class="stateMachine">Свободен</div>
+                                </div>
+                                <div class="container">
+                                    <span>Деталь:</span>
+                                    <p>Наколювач</p>
+                                </div>
+                                <div class="container">
+                                    <span>Установка</span>
+                                    <p>Проход + Резьба</p>
+                                </div>
+                                <div class="container">
+                                    <span>Время детали:</span>
+                                    <p>4:43</p>
+                                </div>
+                                <div class="container">
+                                    <span>Время смены детали:</span>
+                                    <p>0:30</p>
+                                </div>
+                                <div class="container">
+                                    <span>Наладчик:</span>
+                                    <p>Дегтярь В.В.</p>
+                                </div>
+                                <div class="container">
+                                    <span>Дата наладки:</span>
+                                    <p>20.03.2025</p>
+                                </div>
+                                <button style="background-color: green;">Выбрать</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="rightColumn">
+            <div>
+                <header>
+                    <h3>Выбранные станки</h3>
+                </header>
+                <div class="main-part">
+                    <div id="containerSelectedMachines"> </div>
+                </div>
+            </div>
+            <div>
+                <div id="divContainerTimerWork" class="div-timer-container">
+                    <p>Продолжительность смены:</p>
+                    <h5 id="h5TimerWorkDay"></h5>
+                </div>
+                <div onclick="clickEndWorkDay()" id="buttonEndWorkDay" style="background-color: brown;" class="start-work-button"><p>Закончить работу</p></div>
+                <div class="start-work-button">
+                    <p onclick="clickStartWork()">Приступить к работе</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div onclick="closeAllAllerts()" id="bgForAllert" class="display-none"></div>
+    <div id="allertRemoveActualMachine" class="display-none">
+        <h5>Для завершения работы на данном станке введите количество деталей которое вы сделали</h5>
+        <input id="inputCountDetailsAllertForDeleteActiveMachine" type="text">
+        <button onclick="clickConfirmRemoveActualMachine()">Подтвердить</button>
+    </div>
+    <div id="allertErrorEndWorkDay" class="display-none">
+        <h5>Для завершения рабочего дня освободите все станки в меню справа</h5>
+        <button onclick="closeAllAllerts()">Продолжить</button>
+    </div>
+
+    <div id="rotateAlert" class="rotate-alert">
+        <div class="rotate-content">
+            <i class="fas fa-sync-alt"></i>
+            <h2>Поверните устройство</h2>
+            <p>Для корректной работы приложения используйте горизонтальное положение экрана.</p>
+        </div>
+    </div>
+
+<script>
+    const url = new URL(window.location.href);
+    const params = new URLSearchParams(url.search);
+
+    let selectedMachines = [];
+    let selectedWorker = params.get('userName');
+    let selectedActiveMachineForDelete = '';
+    let selectedActiveMachineTypeForDelete = '';
+    let selectedActiveMachineMenuForDelete = '';
+
+    printPanel();
+ 
+    function printPanel(){
+        printMainPanel(); 
+        printActualyMachinesWorker();
+        document.querySelector('#mainContainer').classList.remove('display-none');
+    }
+
+    function printMainPanel(){
+        // отрисовываем имя пользователя, должность, время смены
+        readToFirebase(`workers/${selectedWorker}`, worker => {
+            console.log('Вся информация по человеку: ' + JSON.stringify(worker, null, 2));
+            document.querySelector('#h5WorkerName').textContent = `${worker.fio}, Наладчик`;
+            document.querySelector(`#h5TimerWorkDay`).textContent = getTimeDifference(Date.now(), worker.dateActualyWorkDay);
+
+        });
+        // отрисовываем менюшку с выбором типов станков
+        readToFirebase('machines', data => {
+            const menuTypesMachines = document.querySelector('#menuTypesMachines');
+            menuTypesMachines.innerHTML = '';
+            Object.entries(data).forEach(([key, value]) => {
+                // создаем div элементы, но без использования onclick прямо в HTML
+                const div = document.createElement('div');
+                div.id = `button${key}`;
+                div.classList.add('group-div');
+                div.innerHTML = `<h4>${value.name}</h4>`;
+
+                // добавляем обработчик события через addEventListener
+                div.addEventListener('click', function() {
+                    clickTypeMachines(key);
+                });
+
+                // добавляем созданный элемент в DOM
+                menuTypesMachines.appendChild(div);
+                });
+            });
+    }
+
+    function clickMenuMachines(){
+        const menuTypesMachines = document.querySelector('#menuTypesMachines'); // Получаем элемент
+
+        if(menuTypesMachines.classList.contains('display-none')){
+            menuTypesMachines.classList.remove('display-none'); // Убираем класс, если он есть
+        } else {
+            menuTypesMachines.classList.add('display-none'); // Добавляем класс, если его нет
+        }
+    }
+
+    function removeSelectedGroupMachines() {
+        // Получаем все элементы внутри #menuTypesMachines
+        const menuTypesMachines = document.querySelectorAll('#menuTypesMachines .group-div');
+
+        // Пробегаем по каждому элементу и убираем класс selectedGroup
+        menuTypesMachines.forEach(element => {
+            element.classList.remove('selectedGroup');
+        });
+    }
+
+    function clickTypeMachines(typeName){
+        removeSelectedGroupMachines();
+        document.querySelector(`#button${typeName}`).classList.add('selectedGroup');
+        
+        readToFirebase(`machines/${typeName}`, data => {
+            if (!data || !data.machines) return;
+
+            document.querySelector('#h2TitlePanel').textContent = data.name;
+            document.querySelector('#machinesListPanel').classList.remove('display-none');
+            const containerMachines = document.querySelector('#containerMachines');
+            containerMachines.innerHTML = '';
+
+            Object.entries(data.machines).forEach(([key, machine]) => {
+                let statusMachine = machine.status === 'Занят' ? 'Занят' : 'Свободен';
+                let textButton = machine.status === 'Занят' ? machine.operator : 'Выбрать';
+                let statusColor = machine.status === 'Занят' ? 'red' : 'green';
+                
+                readToFirebase(`workers/${machine.naladchik}/fio`, fioNaladchik => {
+
+                    const naladchikName = (fioNaladchik && fioNaladchik.trim() !== '') ? fioNaladchik : '-';
+
+                    // Используем insertAdjacentHTML для добавления новой строки 
+                    containerMachines.insertAdjacentHTML('beforeend', `
+                        <div class="div-machine">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3>${machine.name}</h3>
+                                <div style="background-color: ${statusColor};" class="stateMachine">${statusMachine}</div>
+                            </div>
+                            <div class="container"><span>Деталь:</span><p>${machine.detail}</p></div>
+                            <div class="container"><span>Установка:</span><p>${machine.install}</p></div>
+                            <div class="container"><span>Время детали:</span><p>${machine.timeDetail}</p></div>
+                            <div class="container"><span>Время смены детали:</span><p>${machine.timeChangeDetail}</p></div>
+                            <div class="container"><span>Наладчик:</span><p>${naladchikName}</p></div>
+                            <div class="container"><span>Дата наладки:</span><p>${formatDate(machine.dateNaladki)}</p></div>
+                            <button onclick='selectMachine("${typeName}/machines/${key}")' style="background-color: ${statusColor};">${textButton}</button>
+                        </div>
+                    `);
+                });
+            });
+        });
+
+    }
+
+    function selectMachine(path){
+        readToFirebase(`machines/${path}`, machine =>{
+            if(machine.status != 'Занят'){
+                addMachineInSelected(machine, `machines/${path}`);
+            } else {
+                console.log('Вывести информацию по этому станку')
+            }
+        });
+
+        function addMachineInSelected(machine, machinePath){
+            if (selectedMachines.includes(machinePath)) {
+                console.log('Такой станок уже выбран');
+            } else {
+                console.log('Добавить новый станок');
+                selectedMachines.push(machinePath);
+                containerSelectedMachines.innerHTML += `
+                    <div class="div-select-machine">
+                        <div class="container">
+                            <h3>${machine.name}</h3>
+                            <i onclick="clickRemoveMachine('${machine.name}', '${machine.typeMachine}', this)" style="color: #ff4d4d; font-size: 18px; cursor: pointer;" class="fa-solid fa-trash"></i>
+                        </div>
+                        <div class="container">
+                            <p>Деталь:</p>
+                            <span>${machine.detail}</span>
+                        </div>
+                        <div class="container">
+                            <p>Установка:</p>
+                            <span>${machine.install}</span>
+                        </div>
+                        <div class="container">
+                            <p>Время детали:</p>
+                            <span>${machine.timeDetail}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+        }
+    }
+
+    async function clickStartWork() {
+        console.log(selectedMachines);
+        const dateNow = Date.now();
+        let actualyLogs = [];
+        const workerName = selectedWorker;
+
+        // Чтение данных о работнике
+        const workerData = await new Promise((resolve, reject) => {
+            readToFirebase(`workers/${workerName}`, (worker) => {
+                if (worker) {
+                    resolve(worker);
+                } else {
+                    reject(new Error('Работник не найден'));
+                }
+            });
+        });
+
+        if (workerData.status !== 'На работе') {
+            // Обновляем статус работника
+            await overwriteToFirebase(`workers/${workerName}/status`, 'На работе');
+            await overwriteToFirebase(`workers/${workerName}/dateActualyWorkDay`, dateNow);
+        }
+
+        // Обрабатываем все станки и записываем логи в actualyLogs
+        for (let machinePath of Object.values(selectedMachines)) {
+            const machine = await new Promise((resolve, reject) => {
+                readToFirebase(machinePath, (machine) => {
+                    if (machine) {
+                        resolve(machine);
+                    } else {
+                        reject(new Error(`Станок ${machinePath} не найден`));
+                    }
+                });
+            });
+
+            if (machine.status !== 'Занят') {
+                await overwriteToFirebase(`${machinePath}/status`, 'Занят');
+                await overwriteToFirebase(`${machinePath}/operator`, selectedWorker);
+
+                const log = {
+                    typeLog: 'станок',
+                    machine: machine.name,
+                    typeOperation: 'изготовление',
+                    detail: machine.detail,
+                    install: machine.install,
+                    timeDetail: machine.timeDetail,
+                    timeChangeDetail: machine.timeChangeDetail,
+                    naladchik: machine.naladchik,
+                    dateNaladki: machine.dateNaladki,
+                    startTime: dateNow,
+                    typeMachine: machine.typeMachine
+                };
+
+                actualyLogs.push(log);
+            } else {
+                console.log(`Станок ${machinePath} уже занят. Убираем его из массива.`);
+                // Убираем из массива, если станок занят
+                delete selectedMachines[machinePath]; // Удаляем станок из списка
+                // Выход из цикла можно сделать через continue
+                continue;
+            }
+        }
+
+        // Перезаписываем логи для работника
+        await overwriteToFirebase(`workers/${workerName}/actualyLogs`, actualyLogs);
+
+        location.href = '../index.html';
+    }
+
+    function printActualyMachinesWorker(){
+        const containerSelectedMachines = document.querySelector('#containerSelectedMachines');
+        containerSelectedMachines.innerHTML = '';
+
+        readToFirebase(`workers/${selectedWorker}/actualyLogs`, logs => {
+            Object.values(logs).forEach(log => {
+                //selectedMachines.push(`machines/frezernye-stanki/machines/002002`);
+                selectedMachines.push(`machines/${log.typeMachine}/machines/${log.machine}`);
+
+                containerSelectedMachines.innerHTML += `
+                <div class="div-select-machine">
+                    <div class="container">
+                        <h3>${log.machine}</h3>
+                        <i onclick="clickRemoveActualMachine('${log.typeMachine}', '${log.machine}', this)" class="fas fa-cogs" style="color: green;"></i>
+                    </div>
+                    <div class="container">
+                        <p>Деталь:</p>
+                        <span>${log.detail}</span>
+                    </div>
+                    <div class="container">
+                        <p>Установка:</p>
+                        <span>${log.install}</span>
+                    </div>
+                    <div class="container">
+                        <p>Время детали:</p>
+                        <span>${log.timeDetail}</span>
+                    </div>
+                </div>
+                `;
+            })
+        });
+    }
+
+    function clickRemoveActualMachine(typeMachine, nameMachine, tagButton){
+        selectedActiveMachineNameForDelete = nameMachine;
+        selectedActiveMachineTypeForDelete = typeMachine;
+        selectedActiveMachineMenuForDelete = tagButton.parentElement.parentElement;
+        document.querySelector('#bgForAllert').classList.remove('display-none');
+        document.querySelector('#allertRemoveActualMachine').classList.remove('display-none');
+    }
+
+    function clickConfirmRemoveActualMachine(){
+        const inputCountDetailsAllertForDeleteActiveMachine = document.querySelector('#inputCountDetailsAllertForDeleteActiveMachine');
+        if(inputCountDetailsAllertForDeleteActiveMachine.value.length > 0){
+            readToFirebase(`workers/${selectedWorker}/actualyLogs`, actualyLogs =>{
+                Object.values(actualyLogs).forEach(log => {
+                    if(log.machine == selectedActiveMachineNameForDelete && log.typeMachine == selectedActiveMachineTypeForDelete){
+                        selectedMachines = selectedMachines.filter(item => item !== `machines/${log.typeMachine}/machines/${log.machine}`);
+                        let objLog = log;
+                        objLog.endTime = Date.now();
+                        objLog.countDetails = inputCountDetailsAllertForDeleteActiveMachine.value;
+                        writeToFirebase(`workers/${selectedWorker}/logs/${Date.now()}`, objLog);
+                        inputCountDetailsAllertForDeleteActiveMachine.value = '';
+                        closeAllAllerts();
+                        selectedActiveMachineMenuForDelete.classList.add('display-none');
+                        
+                        let logMachine = objLog;
+                        logMachine.operator = selectedWorker;
+                        logMachine.typeLog = `работа`;
+                        writeToFirebase(`machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}/logs/${Date.now()}`, logMachine);
+
+                        let logDetail = objLog;
+                        logDetail.operator = selectedWorker;
+                        logDetail.typeLog =  `Производство`;
+                        console.log('Придумать как тут обойтись без транслитерации: ' + transliterate(logDetail.detail));
+                        writeToFirebase(`details/${transliterate(logDetail.detail)}/logs/${Date.now()}`, logDetail);
+                        
+                        overwriteToFirebase(`machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}/status`, 'Выключен');
+                        overwriteToFirebase(`machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}/operator`, '-');
+                    }
+                });
+            });
+        }
+    }
+
+    function closeAllAllerts(){
+        const listAllerts = ['bgForAllert','allertRemoveActualMachine', 'allertErrorEndWorkDay'];
+
+        Object.values(listAllerts).forEach(allert => {
+            document.querySelector(`#${allert}`).classList.add('display-none');
+        })
+    }
+
+    function clickRemoveMachine(name, type, tag){
+        console.log(`Удалить станок: ${type}/${name}`);
+        selectedMachines = selectedMachines.filter(item => item !== `machines/${type}/machines/${name}`);
+        tag.parentElement.parentElement.style.display = 'none';
+    }
+
+    async function clickEndWorkDay() {
+        if (selectedMachines.length > 0) {
+            console.log('Для завершения рабочего дня освободите все станки');
+            document.querySelector('#allertErrorEndWorkDay').classList.remove('display-none');
+            document.querySelector('#bgForAllert').classList.remove('display-none');
+            return;
+        }
+
+        console.log('Вы завершили рабочий день');
+
+        try {
+            // 1. Обнуляем актуальные логи
+            await overwriteToFirebase(`workers/${selectedWorker}/actualyLogs`, '');
+
+            // 2. Читаем данные о работнике
+            const worker = await new Promise((resolve, reject) => {
+                readToFirebase(`workers/${selectedWorker}`, data => {
+                    if (data) resolve(data);
+                    else reject(new Error('Ошибка при получении данных работника'));
+                });
+            });
+
+            // 3. Создаём лог завершения рабочего дня
+            const objLogEndWorkDay = {
+                typeLog: 'Конец рабочего дня',
+                startWorkDay: worker.dateActualyWorkDay,
+                endWorkDay: Date.now()
+            };
+            console.log('Вот лог завершения рабочего дня: ', objLogEndWorkDay);
+
+            // 4. Записываем лог в Firebase
+            await writeToFirebase(`workers/${selectedWorker}/logs/${Date.now()}`, objLogEndWorkDay);
+
+            // 5. Обновляем дату последней смены и статус
+            await overwriteToFirebase(`workers/${selectedWorker}/dateActualyWorkDay`, '');
+            await overwriteToFirebase(`workers/${selectedWorker}/status`, 'Нет на работе');
+
+            // 6. Перенаправляем пользователя
+            location.href = '../index.html';
+
+        } catch (error) {
+            console.error('Ошибка при завершении рабочего дня:', error);
+        }
+    }
+
+</script>
+</body>
+</html>
