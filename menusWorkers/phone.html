@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="phoneStyle.css" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ошибка</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../functions.js"></script>
+</head>
+<body>
+    <div id="errorAllert" class="error-container display-none">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h2>Ошибка</h2>
+        <p>Что бы войти в свой личный кабинет, сначала необходимо начать работу на планшете.</p>
+    </div>
+    <div id="bgDownloadSpinner"></div>
+    <div id="downloadSpinner"></div>
+    <script>
+        const url = new URL(window.location.href);
+        const params = new URLSearchParams(url.search);
+        const userName = params.get('userName');
+
+        let workerInfo = {};
+
+        getUserInfo();
+        function getUserInfo(){
+            readToFirebase(`workers/${userName}`,worker => {
+                workerInfo = worker;
+                if(worker.status == "Нет на работе"){
+                    document.querySelector(`#errorAllert`).classList.remove(`display-none`);
+                    document.querySelector(`#downloadSpinner`).classList.add(`display-none`);
+                    document.querySelector(`#bgDownloadSpinner`).classList.add(`display-none`);
+                } else {
+                    if(workerInfo.role == 'naladchik'){
+                    location.href = `./naladchikMenu/index.html?userName=${userName}`;
+                    } else if(workerInfo.role == 'operator'){
+                        location.href = `./operatorMenu/index.html?userName=${userName}`;
+                    }
+                }
+
+            });
+        }
+    </script>
+</body>
+</html>
