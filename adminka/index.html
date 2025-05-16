@@ -2066,6 +2066,19 @@
                                 //         countWorkDays++;
                                 //     }
                                 // });
+
+                                // отрисовка сегодняшнего дня
+                                try{
+                                    const today = new Date();
+                                    const dayOfMonth = today.getDate();
+                                    if(document.querySelector(`#td-${key}-${dayOfMonth}`).innerHTML == `-<br>-`){
+                                        if(worker.dateActualyWorkDay != ''){
+                                            document.querySelector(`#td-${key}-${dayOfMonth}`).classList.add(`green-allocation`);
+                                            document.querySelector(`#td-${key}-${dayOfMonth}`).innerHTML = `${getHoursAndMinutesInDateNow(worker.dateActualyWorkDay).trim()}`;
+                                        }
+                                    }
+                                } catch(error){}
+                                
                                 document.querySelector(`#td-${key}-totalTime`).innerHTML = `${secondsToTimeFormat(totalTimeMilliseconds / 1000)} </br> ${countWorkDays} смен </br> <button onClick="openAllertCalculateSalary(${totalTimeMilliseconds / 1000}, ${countWorkDays}, 'allertStatWorkersTwoWeen')">Зарплата</button>`;
                                 resolveWorker();
                             });
