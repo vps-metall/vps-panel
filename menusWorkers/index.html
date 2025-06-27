@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css" type="text/css">
+    <title>Личный кабинет</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="../functions.js"></script>
+</head>
+<body>
+    <div style="width: 100%; justify-content: space-between; display: flex; height: 100%;">
+        <div class="leftColumn">
+            <header>
+                <h5>Выберите пункт</h5>
+            </header>
+            <div id="mainPartLeftColumn" class="main-part">
+                <div id="buttonLeftColumnMenuMachines" onclick="selectItemInLeftMenu(this); clickMenuMachines()" class="item display-none">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fa-solid fa-robot"></i>
+                        <p>Станки</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div id="menuTypesMachines" class="div-menu-types-machines display-none"> </div>
+                <div id="buttonLeftColumnMenuDetails" onclick="selectItemInLeftMenu(this); printDetailsPanel()" class="item display-none">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fa-solid fa-gears"></i>
+                        <p>Детали</p>
+                    </div>
+                </div>
+                <div id="buttonLeftColumnCheckCountDetails" onclick="selectItemInLeftMenu(this); printPanelUnconfirmedLogsCountDetails()" class="item display-none">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-stopwatch"></i>
+                        <p>Кол-во деталей</p>
+                    </div>
+                </div>
+                <div id="buttonLeftColumnStorageDetails" onclick="selectItemInLeftMenu(this); printPanelStorage()" class="item display-none">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fas fa-box-open"></i>
+                        <p>Склад деталей</p>
+                    </div>
+                </div>
+                <div id="buttonLeftColumnCreateGrafik" onclick="selectItemInLeftMenu(this); printPanelGrafik()" class="item display-none">
+                    <div style="display: flex; align-items: center;">
+                        <i class="fa-solid fa-calendar"></i>
+                        <p>График смен</p>
+                    </div>
+                </div>
+                <div style="margin-bottom: 12px;"></div>
+            </div>
+        </div>
+        <div class="centerColumn">
+            <header>
+                <h5 id="h5WorkerName"></h5>
+                <i onclick="openAllertTwoWeekStat(Date.now())" style="color: #777; font-size: 24px; cursor: pointer;" class="fas fa-chart-line"></i>
+            </header>
+            <div class="title-div">
+                <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                    <h2 id="h2TitlePanel">Выберите пункт в меню слева</h2>
+                    <input onchange="printTableGrafik()" id="inputSelectDateForGrafikPanel" style="width: auto;" type="date" class="display-none">
+                </div>
+            </div>
+            <div id="mainContainerPanels" class="main-part">
+                <div id="machinesListPanel" class="display-none">
+                    <div class="div-white-bg">
+                        <input id="inputSearchMachinesInType" placeholder="Введите название станка для поиска..." oninput="searchMachinesInType()" type="text">
+                        <div id="containerMachines"> </div>
+                    </div>
+                </div>
+                <div id="detailsPanel" class="display-none">
+                    <div class="div-white-bg">
+                        <h2>Все детали</h2>
+                        <div class="div-input-container" style="margin-bottom: 12px;">
+                            <input id="inputSearchDetailsInDetailsPanel" placeholder="Введите название детали или чертежа для поиска..." type="text">
+                            <button onclick="clickSearchDetailsInDetailsPanel()">Поиск</button>
+                        </div>
+                        <div class="table-container" style="max-height: 400px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Номер чертежа</th>
+                                        <th>Количество<br/>установок</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tb-details-table"> </tbody>
+                            </table>
+                            <div class="navigation-menu-table">
+                                <div style="width: 100%; display: flex; justify-content: center;">
+                                    <button>Загрузить еще</button>
+                                </div>
+                                <h5>Загружено 0 из 0</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="div-white-bg">
+                        <h2>Добавить новую деталь</h2>
+                        <div style="display: flex; align-items: center; justify-content: center;">
+                            <div class="div-description">
+                                <h4>Перед добавлением новой детали убедитесь, что она ещё не была добавлена ранее, чтобы избежать дублирования</h4>
+                            </div>
+                            <div class="div-container-form">
+                                <h5>Название новой детали</h5>
+                                <input id="inputNameNewDetailInDetailsPanel" type="text">
+                                <h5>Номер чертежа детали</h5>
+                                <input id="inputNameDrawNewDetailInDetailsPanel" type="text">
+                                <p id="pErrorAddNewDetailInDetailsPanel" class="p-error display-none" style="margin-bottom: 8px !important;"></p>
+                                <button onclick="addNewDetail(`inputNameNewDetailInDetailsPanel`, `inputNameDrawNewDetailInDetailsPanel`, `pErrorAddNewDetailInDetailsPanel`, 'details')">Добавить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="unconfirmedLogsPanel" class="display-none">
+                    <div class="div-white-bg">
+                        <div id="containerUnConfirmedLogs"></div>
+                    </div>
+                </div>
+                <div id="storageDetailsPanel" class="display-none">
+                    <div class="div-white-bg">
+                        <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;
+                        padding-bottom: .5rem; margin-bottom: 28px; border-bottom: 1px solid #e4e9f3;">
+                            <h2>Детали на складе</h2>
+                            <button onclick="openAllertAddDetailInStorage()" class="add-detail">+ Добавить деталь</button>
+                        </div>
+                        <div class="div-input-container" style="margin-bottom: 12px;">
+                            <input id="inputSearchDetailsInStorage" placeholder="Введите название детали или чертежа для поиска..." type="text">
+                            <button onclick="clickSearchDetailsInStoragePanel()">Поиск</button>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Название</th>
+                                    <th>Номер чертежа</th>
+                                    <th>Количество<br>деталей</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bodyTableDetailsStorage"></tbody>
+                        </table>
+                        <div class="navigation-menu-table" style="position: static;">
+                            <div style="width: 100%; display: flex; justify-content: center;">
+                                <button>Загрузить еще</button>
+                            </div>
+                            <h5></h5>
+                        </div>
+                    </div>
+                    <div class="div-white-bg">
+                        <h2 style="padding-bottom: .5rem; border-bottom: 1px solid #e4e9f3; margin-bottom: 28px;">Добавить новую деталь</h2>
+                        <div style="display: flex; align-items: center; justify-content: center;">
+                            <div class="div-description">
+                                <h4>Перед добавлением новой детали убедитесь, что она ещё не была добавлена ранее, чтобы избежать дублирования</h4>
+                            </div>
+                            <div class="div-container-form">
+                                <h5>Название новой детали</h5>
+                                <input id="inputNameNewDetailInStoragePanel" type="text">
+                                <h5>Номер чертежа детали</h5>
+                                <input id="inputNameDrawNewDetailInStoragePanel" type="text">
+                                <p id="pErrorAddNewDetailInStoragePanel" class="p-error display-none" style="margin-bottom: 8px !important;"></p>
+                                <button onclick="addNewDetail(`inputNameNewDetailInStoragePanel`, `inputNameDrawNewDetailInStoragePanel`, `pErrorAddNewDetailInStoragePanel`, 'storage')">Добавить</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="createGrafikPanel" class="display-none">
+                    <div class="div-white-bg">
+                        <h2 id="h2DateSelectedForGrafikCreatePanel"></h2>
+                        <input type="text" placeholder="Введите ФИО человека для поиска...">
+                        <table style="margin-top: 12px;">
+                            <thead>
+                                <tr>
+                                    <th>ФИО</th>
+                                    <th>Статус</th>
+                                    <th>Начало рабочей смены</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyCreateGrafikPanel"></tbody>
+                        </table>
+                    </div>
+                    <div class="div-white-bg">
+                        <h2 style="padding-bottom: .5rem; border-bottom: 1px solid #e4e9f3; margin-bottom: 28px;">Редактировать график</h2>
+                        <div style="display: flex; align-items: center; justify-content: center;">
+                            <div class="div-description">
+                                <h4>Тут можно поставить какое-то уведомление связанно с добавлением графика</h4>
+                            </div>
+                            <div class="div-container-form">
+                                <h5>Выберите дату</h5>
+                                <input onchange="selectDateForReductGrafik()" id="inputSelectedDateForReductGrafikWorker" type="date">
+                                <h5>Редактировать список людей</h5>
+                                <input onclick="reductGrafikDayWorkers()" id="inputReductGrafikDayWorkers" type="text" placeholder="Выберите дату" style="cursor: pointer;" readonly="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="rightColumn">
+            <header>
+                    <h3>Выбранные станки</h3>
+            </header>
+            <div class="main-part">
+                    <div id="containerSelectedMachines"> </div>
+            </div>
+            <div>
+                <div id="divContainerTimerWork" class="div-timer-container display-none">
+                    <p>Продолжительность смены:</p>
+                    <h5 id="h5TimerWorkDay"></h5>
+                </div>
+                <div onclick="openAllertConfirmEndWorkday()" id="buttonEndWorkDay" style="background-color: brown;" class="start-work-button display-none"><p>Закончить работу</p></div>
+                <div id="buttonExit" onclick="clickExit()" style="background-color: brown;" class="start-work-button display-none"><p>Выйти</p></div>
+                <div onclick="clickStartWork()" class="start-work-button">
+                    <p>Приступить к работе</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div onclick="closeAllAllerts()" id="bgForAllert" class="display-none"></div>
+    <div id="allertRemoveActualMachine" class="display-none">
+        <h5>Для завершения работы на данном станке введите количество деталей которое вы сделали</h5>
+        <input id="inputCountDetailsAllertForDeleteActiveMachine" type="number">
+        <p id="pErrorAllertRemoveActualMachine" style="margin-bottom: 12px !important;" class="p-error display-none">Ошибка. Введите количество деталей</p>
+        <button onclick="clickConfirmRemoveActualMachine()">Подтвердить</button>
+    </div>
+    <div id="allertErrorEndWorkDay" class="display-none">
+        <h5>Для завершения рабочего дня освободите все станки в меню справа</h5>
+        <button onclick="closeAllAllerts()">Продолжить</button>
+    </div>
+    <div id="allertSelectPart" class="display-none">
+        <h2>Выберите деталь</h2>
+    
+        <div class="div-input-container" style="margin-bottom: 12px;">
+            <input id="inputSearchDetailsInAllertSetupMachine" placeholder="Введите название детали или чертежа для поиска..." type="text">
+            <button onclick="clickSearchDetailsInAllertSetupMachine()">Поиск</button>
+        </div>
+    
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Номер чертежа</th>
+                        <th>Количество<br/>установок</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div style="position: static;" class="navigation-menu-table">
+            <button>Загрузить еще</button>
+            <h5>Загружено 0 из 0</h5>
+        </div>
+    
+        <button onclick="closeAllertSelectPart()" class="close-alert-button">Закрыть</button>
+    </div>
+    <div id="allertSelectInstallForPart" class="display-none">
+        <h2></h2>
+    
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Название установки</th>
+                        <th>Используемые типы станков</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    
+        <button onclick="closeAllertSelectInstallForDetailForEditMachine()" class="close-alert-button">Закрыть</button>
+    </div>
+    <div id="rotateAlert" class="rotate-alert">
+        <div class="rotate-content">
+            <i class="fas fa-sync-alt"></i>
+            <h2>Поверните устройство</h2>
+            <p>Для корректной работы приложения используйте горизонтальное положение экрана.</p>
+        </div>
+    </div>
+    <div id="allertSetupMachine" class="display-none">
+        <h2 id="setupMachineTitle">Настройка станка</h2>
+        <div style="display: flex; align-items: center;">
+            <div style="width: 250px;">
+                <h4>Время указывается в формате: 1.30<br/>1 - количество минут<br/>30 - количество секунд</h4>
+            </div>
+            <div class="column-menu">
+                <button onclick="openAllertSelectDetailForEditMachine()" class="buttonSelectDetail" id="buttonGoToSelectDetailForEditMachine">Выбрать деталь</button>
+                <h5>Введите время установки (мин)</h5>
+                <input id="inputSetupTimeDetail" type="number" placeholder="Введите время установки (мин)">
+                <h5>Введите время смены детали (мин)</h5>
+                <input id="inputSetupTimeChangeDetail" type="number" placeholder="Введите время смены детали (мин)">
+                <h5>Введите название УП</h5>
+                <input id="inputSetupNameUpDetail" type="text" placeholder="Введите название управляющей программы (УП)">
+                <p id="pErrorAllertSetupMachine" class="p-error display-none">Ошибка. Заполните всю информацию</p>
+                <button onclick="clickFinishEditInformationMachine()" class="buttonFinishSetupMachine">Завершить настройку станка</button>
+            </div>
+        </div>
+    </div>
+    <div id="allertNoSetupMachine" class="display-none">
+        <h5>Для начала работы на данном станке необходимо его настроить</h5>
+        <button onclick="closeAllAllerts()">Продолжить</button>
+    </div>
+    <div id="allertConfirmEndWorkDay" class="display-none">
+        <h5>Вы действительно хотите завершить рабочий день?</h5>
+        <button onclick="clickEndWorkDay()">Подтвердить</button>
+    </div>
+    <div id="allertConfirmExit" class="display-none">
+        <h5>Вы действительно хотите выйти, не начав рабочий день?</h5>
+        <button onclick="clickConfirmExit()">Подтвердить</button>
+    </div>
+    <div id="allertStatTwoWeek" class="allert display-none">
+        <div style="display: flex; width: 100%; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <h2>График рабочих смен за две недели</h2>
+            <div style="display: flex; align-items: center;">
+                <i id="buttonDoubleSkipStatTwoWeekLeft" class="fa fa-angle-double-left"></i>
+                <i id="buttonSkipStatTwoWeekLeft" class="fa fa-chevron-left"></i>
+                <h2 id="h2DatesRangeStatTwoWeek" style="margin: 0px 12px;"></h2>
+                <i id="buttonSkipStatTwoWeekRight" class="fa fa-chevron-right"></i>
+                <i id="buttonDoubleSkipStatTwoWeekRight" class="fa fa-angle-double-right"></i>
+            </div>
+        </div>
+        <div class="table-container" style="max-height: none; overflow-y: visible;">
+            <table>
+                <thead id="headTableStatTwoWeek">
+                    <tr>
+                        <th>-<br/>-<br/>-</th>
+                        <th>-<br/>-<br/>-</th>
+                        <th>-<br/>-<br/>-</th>
+                        <th>-<br/>-<br/>-</th>
+                        <th>-<br/>-<br/>-</th>
+                        <th>-<br/>-<br/>-</th>
+                        <th>-<br/>-<br/>-</th>
+                        <th>Всего часов</th>
+                    </tr>
+                </thead>
+                <tbody id="bodyTableStatTwoWeek">
+                    <tr>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td rowspan="2">-</td>
+                    </tr>
+                    <tr>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                        <td>-<br/>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div id="allertCalculateSalary" class="alert-window display-none" style="width: 300px;">
+        <h3 style="text-align: center;">Расчитать ЗП</h3>
+        <div class="container">
+            <p>Количество часов:</p>
+            <span id="spanCountHoursForAllertSalary"></span>
+        </div>
+        <div class="container">
+            <p>Количество смен:</p>
+            <span id="spanCountWorkDaysForAllertSalary"></span>
+        </div>
+        <div class="container">
+            <p>Почасовая ставка:</p>
+            <span id="spanHorlyRateForAllertSalary"></span>
+        </div>
+        <div class="container">
+            <p>Отнять время на обед</p>
+            <input onclick="calculateSumSalary()" id="checkboxMinusTimeObed" type="checkbox" checked>
+        </div>
+        <div class="container">
+            <p>Итого часов работы:</p>
+            <span id="spanCountHoursForCalculateSalary"></span>
+        </div>
+        <div class="container">
+            <p style="font-weight: 600;">Итого ЗП:</p>
+            <span style="font-weight: 800;" id="spanResSumSalary"></span>
+        </div>
+        <button onclick="closeAllertCalculatesalary()">Закрыть</button>
+    </div>
+    <div id="allertReductDetail" class="allert display-none">
+        <h2 id="h2DetailNameForReductDetail"></h2>
+        <h5 id="h5NameDrawDetailForReructDetail"></h5>
+        <h5 id="h5CountInstallsDetailForReductDetail" style="padding-bottom: 6px; margin-bottom: 12px; border-bottom: 1px solid #e4e9f3;"></h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Название установки</th>
+                    <th>Тип станков</th>
+                    <th>Удалить</th>
+                </tr>
+            </thead>
+            <tbody id="bodyDetailInstallsForReduct"> </tbody>
+        </table>
+        <div style="display: flex; margin-top: 12px; justify-content: center;">
+            <div class="div-description">
+                <p>Тут можно поставить какое-то уведомление связанно с добавлением новой детали</p>
+            </div>
+            <div class="container-form">
+                <h5>Название установки</h5>
+                <input id="inputNewInstallNameForDetail" type="text" placeholder="Название новой установки">
+                <h5>Выберите группу станков</h5>
+                <select id="selectTypesMachinesForReductDetail">
+                    <option value="">Выберите тип станков</option>
+                </select>
+                <p class="p-error display-none" id="pErrorAddNewInstallForDetail" style="margin-bottom: 6px !important;"></p>
+                <button>Добавить</button>
+            </div>
+        </div>
+    </div>
+    <div id="allertReductCountDetailsInUnconfirmLog" class="display-none"></div>
+    <div id="allertAddDetailInStorage" class="allert display-none" style="width: 800px;">
+        <h2 style="text-align: center; margin-bottom: 8px;">Выберите деталь</h2>
+        <div class="div-input-container" style="margin-bottom: 12px;">
+            <input id="inputSearchInAllertAddDetailInStorage" placeholder="Введите название детали или чертежа для поиска..." type="text">
+            <button onclick="clickSearchDetailsInAllertAddDetailInStorage()">Поиск</button>
+        </div>
+        <table style="table-layout: fixed; width: 100%;">
+            <thead style="position: static;">
+                <tr>
+                    <th>Название</th>
+                    <th>Номер чертежа</th>
+                </tr>
+            </thead>
+            <tbody id="bodyTableSelectedDetailForStorage"></tbody>
+        </table>
+        <div style="position: static;" class="navigation-menu-table">
+            <div style="width: 100%; display: flex; justify-content: center;">
+                <button>Загрузить еще</button>
+            </div>
+            <h5>Загружено 0 из 0</h5>
+        </div>
+    </div>
+    <div id="allertAddDetailInStorageCount" class="allert display-none" style="width: 350px;">
+        <h3>Добавление детали</h3>
+        <div class="container">
+            <p>Название детали:</p>
+            <span></span>
+        </div>
+        <div class="container">
+            <p>Номер чертежа:</p>
+            <span></span>
+        </div>
+        <h5>Введите количество деталей</h5>
+        <input style="text-align: center;" type="number" placeholder="Количество деталей">
+        <p class="p-error display-none">Введите количество деталей</p>
+        <button>Добавить</button>
+        <button style="background-color: brown; margin-top: 4px;">Закрыть</button>
+    </div>
+    <div id="allertSelectDetailInStorage" class="allert display-none" style="width: 700px;">
+        <h2>Детальная информация Бобишка</h2>
+        <div class="container">
+            <p>Номер чертежа:</p>
+            <span class="name-draw"></span>
+        </div>
+        <div class="container" style="margin-bottom: 12px;">
+            <p>Количество деталей на складе:</p>
+            <span class="count-details"></span>
+        </div>
+        <div style="overflow-y: auto; max-height: 270px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Тип</th>
+                        <th>Время</th>
+                        <th>Кто</th>
+                        <th>Кол-во<br>деталей</th>
+                        <th>Общее кол-во<br>деталей</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="main-container-form">
+            <div style="width: 260px; padding: 0px 14px;">
+                <h4>Введите количество деталей и затем выберите действия</h4>
+            </div>
+            <div>
+                <div class="container" style="margin-top: 12px; margin-bottom: 8px;">
+                    <span>Введите количество деталей</span>
+                </div>
+                <input style="text-align: center;" type="number" placeholder="Количество деталей">
+                <p class="p-error display-none" style="margin-top: 4px !important;">Введите количество деталей</p>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: center;">
+            <button class="button-add">Добавить</button> 
+        </div>
+        <div style="display: flex; justify-content: center;">
+            <button class="button-minus" style="background-color: brown;">Отнять</button>
+        </div>
+    </div>
+    <div id="allertReductGrafikWorkersDay" class="allert display-none" style="width: 800px;">
+        <h2></h2>
+        <input type="text" placeholder="Введите ФИО человека для поиска..." style="margin-bottom: 8px;">
+        <table>
+            <thead style="position: static;">
+                <th>Фамилия Имя Отчество</th>
+            </thead>
+            <tbody id="tbodyTableWorkersForAllertReductGrafikWorkers"></tbody>
+        </table>
+        <button onclick="clickConfirmReductGragikDay()">Подтвердить</button>
+    </div>
+    
+    <div id="bgDownloadSpinner" class="display-none"></div>
+    <div id="downloadSpinner" class="display-none"></div>
+
+<script>
+    const url = new URL(window.location.href);
+    const params = new URLSearchParams(url.search);
+
+    
+    let selectedWorker = params.get('userName');
+    let selectedWorkerFio = '';
+
+    let roleRules = {};
+
+    let selectedMachines = [];
+
+    let selectedActiveMachineForDelete = '';
+    let selectedActiveMachineTypeForDelete = '';
+    let selectedActiveMachineMenuForDelete = '';
+
+    let selectedDetailSystemNameForEditInfoForMachine = '';
+    let selectedInstallKeyForEditInfoForMachine = '';
+    let selectedPathMachineForEditInfo = '';
+
+    let selectedTypeMachinesPanel = '';
+
+    // переменные для расчета зп
+    let countSecondsTimeForCalculateSalary = 0;
+    let countDaysForCalculateSalary = 0;
+    let selectorLastAllert = '';
+
+    let downloadStartTime = null;
+    let downloadTimer = null;
+
+    const limitForDownloadDetailsInDb = 20;
+
+
+    printPanel();
+ 
+    async function printPanel(){
+        await printMainPanel(); 
+        await printActualyMachinesWorker();
+    }
+
+    async function printMainPanel(){
+        openAllertDownload();
+        const worker = await asyncReadToFirebase(`workers/${selectedWorker}`);
+        selectedWorkerFio = worker.fio;
+        document.querySelector('#h5WorkerName').textContent = `${worker.fio}`;
+        
+        if(worker.status == 'На работе'){
+            document.querySelector(`#buttonEndWorkDay`).classList.remove(`display-none`);
+            document.querySelector(`#divContainerTimerWork`).classList.remove(`display-none`);
+            document.querySelector(`#h5TimerWorkDay`).textContent = getTimeDifference(Date.now(), worker.dateActualyWorkDay);
+        } else{
+            document.querySelector(`#buttonExit`).classList.remove('display-none');
+        }
+        
+        closeAllertDownload();
+
+        roleRules = await asyncReadToFirebase(`roles/${worker.role}`);
+        document.querySelector('#h5WorkerName').textContent += `, ${roleRules.name}`;
+        // отрисовка кнопок навигации
+        if(roleRules.workInMachine || roleRules.setupMachine){
+            document.querySelector(`#buttonLeftColumnMenuMachines`).classList.remove(`display-none`);
+            const machines = await asyncReadToFirebase(`machines`);
+            const menuTypesMachines = document.querySelector('#menuTypesMachines');
+            menuTypesMachines.innerHTML = '';
+            Object.entries(machines).forEach(([key, value]) => {
+                menuTypesMachines.innerHTML += `
+                    <div id="button${key}" class="group-div" onclick="clickTypeMachines('${key}')">
+                        <h4>${value.name}</h4>
+                    </div>
+                `;
+            });
+        }
+
+        if(roleRules.addDetails){
+            document.querySelector(`#buttonLeftColumnMenuDetails`).classList.remove(`display-none`);
+        }
+
+        if(roleRules.checkCountDetails){
+            document.querySelector(`#buttonLeftColumnCheckCountDetails`).classList.remove(`display-none`);
+        }
+
+        if(roleRules.storageDetails){
+            document.querySelector(`#buttonLeftColumnStorageDetails`).classList.remove(`display-none`);
+        }
+
+        if(roleRules.createGrafikWorkers){
+            document.querySelector(`#buttonLeftColumnCreateGrafik`).classList.remove(`display-none`);
+        }
+
+    }
+
+    async function printActualyMachinesWorker(){
+        const containerSelectedMachines = document.querySelector('#containerSelectedMachines');
+        containerSelectedMachines.innerHTML = '';
+        const logs = await asyncReadToFirebase(`workers/${selectedWorker}/actualyLogs`);
+
+        if(logs){
+            Object.values(logs).forEach(log => {
+                selectedMachines.push(`machines/${log.typeMachine}/machines/${log.machineSystemName}`);
+
+                containerSelectedMachines.innerHTML += `
+                    <div onclick="clickRemoveActualMachine('${log.typeMachine}', '${log.machineSystemName}', this)" class="div-select-machine">
+                        <div class="container">
+                            <h3>${log.machine}</h3>
+                            <i class="fas fa-cogs" style="color: green;"></i>
+                        </div>
+                        <div class="container">
+                            <p>Деталь:</p>
+                            <span>${log.detail}</span>
+                        </div>
+                        <div class="container">
+                            <p>Установка:</p>
+                            <span>${log.install}</span>
+                        </div>
+                        <div class="container">
+                            <p>Время детали:</p>
+                            <span>${log.timeDetail}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    function clickMenuMachines(){
+        const menuTypesMachines = document.querySelector('#menuTypesMachines'); // Получаем элемент
+
+        if(menuTypesMachines.classList.contains('display-none')){
+            menuTypesMachines.classList.remove('display-none'); // Убираем класс, если он есть
+        } else {
+            menuTypesMachines.classList.add('display-none'); // Добавляем класс, если его нет
+        }
+    }
+
+    function removeSelectedGroupMachines() {
+        // Получаем все элементы внутри #menuTypesMachines
+        const menuTypesMachines = document.querySelectorAll('#menuTypesMachines .group-div');
+
+        // Пробегаем по каждому элементу и убираем класс selectedGroup
+        menuTypesMachines.forEach(element => {
+            element.classList.remove('selectedGroup');
+        });
+    }
+
+    function clickTypeMachines(typeName) {
+        openAllertDownload();
+        closeAllPanels();
+        selectedTypeMachinesPanel = typeName;
+
+        const containerMachines = document.querySelector('#containerMachines');
+
+        removeSelectedGroupMachines();
+        document.querySelector(`#button${typeName}`).classList.add('selectedGroup');
+
+        // Подписываемся на изменения в Firebase
+        readToFirebase(`machines/${typeName}`, data => {
+            containerMachines.innerHTML = '';
+
+            if (!data || !data.machines) return;
+
+            document.querySelector('#h2TitlePanel').textContent = data.name;
+            document.querySelector('#machinesListPanel').classList.remove('display-none');
+
+            // Обрабатываем каждую машину
+            Object.entries(data.machines).sort(([keyA], [keyB]) => {
+                const numA = parseInt(keyA.match(/\d+$/));
+                const numB = parseInt(keyB.match(/\d+$/));
+                return numA - numB;
+            }).forEach(([key, machine]) => {
+                let statusMachine = machine.status === 'Занят' ? 'Занят' : 'Свободен';
+                let textButton = machine.status === 'Занят' ? formatName(machine.operator) : 'Выбрать';
+                let statusColor = machine.status === 'Занят' ? 'red' : 'green';
+                let colorButton = machine.status === 'Занят' ? 'red' : 'green';
+                
+                if(selectedMachines.includes(`machines/${typeName}/machines/${machine.systemName}`)){
+                    textButton = `Выбран`;
+                    colorButton = 'rgb(31, 117, 213)';
+                }
+                
+                let selectButton = `<button onclick='selectMachine("${typeName}/machines/${key}", this)' style="background-color: ${colorButton};">${textButton}</button>`;
+                let editButton = `<button onclick='openAllertEditMachine("${typeName}","${key}")' style="background-color: #ffc107;">Настроить</button>`;
+
+                if(machine.status == 'Занят' || textButton == 'Выбран'){
+                    editButton = '';
+                }
+
+                if(roleRules.setupMachine == false){
+                    editButton = '';
+                }
+                
+                if(roleRules.workInMachine == false){
+                    selectButton = '';
+                }
+
+                containerMachines.insertAdjacentHTML('beforeend', `
+                    <div class="div-machine">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3>${machine.name}</h3>
+                                <div style="background-color: ${statusColor};" class="stateMachine">${statusMachine}</div>
+                            </div>
+                            <div class="container"><span>Деталь:</span><p>${machine.detail}</p></div>
+                            <div class="container"><span>Чертеж:</span><p>${machine.nameDraw}</p></div>
+                            <div class="container"><span>Установка:</span><p>${machine.install}</p></div>
+                            <div class="container"><span>Время детали:</span><p>${machine.timeDetail}</p></div>
+                            <div class="container"><span>Время смены детали:</span><p>${machine.timeChangeDetail}</p></div>
+                            <div class="container"><span>Наладчик:</span><p>${formatName(machine.naladchik)}</p></div>
+                            <div class="container"><span>Название УП:</span><p>${machine.nameUp}</p></div>
+                            <div class="container"><span>Дата наладки:</span><p>${formatDate(machine.dateNaladki)}</p></div>
+                        </div>
+                        <div>
+                            ${selectButton}
+                            ${editButton}
+                        </div>
+                    </div>
+                `);
+                
+            });
+            closeAllertDownload();
+        });
+    }
+
+    function selectMachine(path, button){
+        openAllertDownload();
+
+        readToFirebase(`machines/${path}`, machine =>{
+            
+            if(machine.status != 'Занят'){
+                if(machine.detail != '-'){
+                    button.id = `button${path}`;
+                    button.style.backgroundColor = "#1f75d5";
+                    button.textContent = "Выбран";
+                    addMachineInSelected(machine, `machines/${path}`);
+                    const parentDiv = button.parentElement;
+                    const buttonSetup = parentDiv.querySelectorAll('button')[1];
+                    buttonSetup.remove();
+                } else {
+                    document.querySelector(`#allertNoSetupMachine`).classList.remove('display-none');
+                    document.querySelector(`#bgForAllert`).classList.remove('display-none');
+                    closeAllertDownload();
+                }
+            } else {
+                closeAllertDownload();
+            }
+        });
+
+        function addMachineInSelected(machine, machinePath){
+            if (selectedMachines.includes(machinePath)) { } else {
+                selectedMachines.push(machinePath);
+                containerSelectedMachines.innerHTML += `
+                    <div onclick="clickRemoveMachine('${machine.systemName}', '${machine.typeMachine}', this)" class="div-select-machine">
+                        <div class="container">
+                            <h3>${machine.name}</h3>
+                            <i style="color: #ff4d4d; font-size: 18px;" class="fa-solid fa-trash"></i>
+                        </div>
+                        <div class="container">
+                            <p>Деталь:</p>
+                            <span>${machine.detail}</span>
+                        </div>
+                        <div class="container">
+                            <p>Установка:</p>
+                            <span>${machine.install}</span>
+                        </div>
+                        <div class="container">
+                            <p>Время детали:</p>
+                            <span>${machine.timeDetail}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            closeAllertDownload();
+
+        }
+    }
+
+    function openAllertEditMachine(typeMachine, machineName){
+        document.querySelector('#allertSetupMachine').classList.remove('display-none');
+        document.querySelector('#bgForAllert').classList.remove('display-none');
+        readToFirebase(`/machines/${typeMachine}/machines/${machineName}`, machine => {
+            document.querySelector('#setupMachineTitle').textContent = `Настройка станка ${machine.name}`;
+        });
+        selectedPathMachineForEditInfo = `machines/${typeMachine}/machines/${machineName}`;
+    }
+
+    function closeAllertSelectPart(){
+        document.querySelector(`#allertSetupMachine`).classList.remove('display-none');
+        document.querySelector(`#allertSelectPart`).classList.add('display-none');
+        document.querySelector(`#searchPartInput`).value = '';
+    }
+
+    async function openAllertSelectDetailForEditMachine(){
+        await printTableDetailsForSetupMachine(limitForDownloadDetailsInDb);
+        document.querySelector('#allertSetupMachine').classList.add('display-none');
+        document.querySelector('#allertSelectPart').classList.remove('display-none');
+    }
+
+    async function printTableDetailsForSetupMachine(limit){
+        openAllertDownload();
+        const bodyTable = document.querySelector(`#allertSelectPart tbody`);
+        bodyTable.innerHTML = '';
+        const details = await asyncReadFirstNItems(`details`, limit);
+
+        if(details.length > 0){
+            details.forEach(({ key, value: detail }) => {
+                bodyTable.innerHTML += `
+                    <tr onclick="openAllertSelectInstallForDetailForEditMachine('${key}')" style="cursor:pointer;">
+                        <td>${detail.name}</td>
+                        <td>${detail.nameDraw}</td>
+                        <td>${detail.countInstalls}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            bodyTable.innerHTML = `
+            <tr>
+                <td colspan="3">Детали не найдены</td>
+            </tr>
+            `;
+        }
+
+        const countAllDetail = await asyncReadToFirebase(`detailsCount`);
+        if(limit > countAllDetail){
+            document.querySelector(`#allertSelectPart .navigation-menu-table h5`).textContent = `Загружено ${countAllDetail} из ${countAllDetail}`;
+            document.querySelector(`#allertSelectPart .navigation-menu-table button`).onclick = function () { };
+        } else {
+            document.querySelector(`#allertSelectPart .navigation-menu-table h5`).textContent = `Загружено ${limit} из ${countAllDetail}`;
+            document.querySelector(`#allertSelectPart .navigation-menu-table button`).onclick = function () { printTableDetailsForSetupMachine(limit+limitForDownloadDetailsInDb) };
+        }
+        closeAllertDownload();
+
+    }
+
+    async function openAllertSelectInstallForDetailForEditMachine(systemNameDetail){
+        openAllertDownload();
+        const bodyTable = document.querySelector(`#allertSelectInstallForPart tbody`);
+        bodyTable.innerHTML = '';
+        const detail = await asyncReadToFirebase(`details/${systemNameDetail}`);
+        document.querySelector(`#allertSelectInstallForPart h2`).textContent = `Выберите установку для ${detail.name}`;
+        if(detail.installs){
+            Object.entries(detail.installs).forEach(([key, install]) => {
+            bodyTable.innerHTML += `
+                    <tr onclick="selectInstallForDetailForEditMachine('${detail.systemName}', '${detail.name}', '${install.name}', '${key}')">
+                        <td>${install.name}</td>    
+                        <td>${install.typeMachinesName}</td> 
+                    </tr>
+                `;
+            });
+            document.querySelector('#allertSelectInstallForPart').classList.remove('display-none');
+            document.querySelector('#allertSelectPart').classList.add('display-none');
+        }
+        closeAllertDownload();
+    }
+
+    function closeAllertSelectInstallForDetailForEditMachine(){
+        document.querySelector(`#allertSelectPart`).classList.remove('display-none');
+        document.querySelector(`#allertSelectInstallForPart`).classList.add('display-none');
+    }
+
+    function selectInstallForDetailForEditMachine(detailSystemName, detailName, installName, installKey){
+        document.querySelector('#allertSelectInstallForPart').classList.add('display-none');
+        document.querySelector('#allertSetupMachine').classList.remove('display-none');
+        document.querySelector(`#buttonGoToSelectDetailForEditMachine`).textContent = `${detailName} -> ${installName}`;
+        selectedDetailSystemNameForEditInfoForMachine = detailSystemName;
+        selectedInstallKeyForEditInfoForMachine = installKey;
+    }
+
+    function clickFinishEditInformationMachine() {
+        const timeDetailInput = document.querySelector(`#inputSetupTimeDetail`).value.trim();
+        const timeChangeDetailInput = document.querySelector(`#inputSetupTimeChangeDetail`).value.trim();
+        const nameUpInput = document.querySelector(`#inputSetupNameUpDetail`).value.trim();
+        const detailSelected = document.querySelector(`#buttonGoToSelectDetailForEditMachine`).textContent.trim();
+        const pError =  document.querySelector(`#pErrorAllertSetupMachine`);
+
+        if (timeDetailInput && timeChangeDetailInput && nameUpInput && detailSelected !== `Выбрать деталь`) {
+            openAllertDownload();
+            let timeDetail, timeChangeDetail;
+
+            // Проверка времени детали
+            try {
+                timeDetail = formatTime(timeDetailInput);
+            } catch (e) {
+                pError.classList.remove(`display-none`);
+                pError.textContent = 'Неверный формат времени установки';
+                closeAllertDownload();
+                return; // Остановить выполнение
+            }
+
+            // Проверка времени смены детали
+            try {
+                timeChangeDetail = formatTime(timeChangeDetailInput);
+            } catch (e) {
+                pError.classList.remove(`display-none`);
+                pError.textContent = 'Неверный формат времени смены детали';
+                closeAllertDownload();
+                return; // Остановить выполнение
+            }
+
+            // Если всё ок — продолжаем
+            readToFirebase(selectedPathMachineForEditInfo, machine => {
+                readToFirebase(`details/${selectedDetailSystemNameForEditInfoForMachine}`, detail => {
+                    readToFirebase(`details/${selectedDetailSystemNameForEditInfoForMachine}/installs/${selectedInstallKeyForEditInfoForMachine}`, install => {
+                        pError.classList.add(`display-none`);
+                        const dateNow = Date.now();
+                        const nameUp = nameUpInput;
+
+                        // Обновляем данные
+                        overwriteToFirebase(`${selectedPathMachineForEditInfo}/dateNaladki`, dateNow);
+                        overwriteToFirebase(`${selectedPathMachineForEditInfo}/detail`, detail.name);
+                        overwriteToFirebase(`${selectedPathMachineForEditInfo}/install`, install.name);
+                        overwriteToFirebase(`${selectedPathMachineForEditInfo}/naladchik`, selectedWorkerFio);
+                        overwriteToFirebase(`${selectedPathMachineForEditInfo}/timeChangeDetail`, timeChangeDetail);
+                        overwriteToFirebase(`${selectedPathMachineForEditInfo}/timeDetail`, timeDetail);
+                        overwriteToFirebase(`${selectedPathMachineForEditInfo}/nameUp`, nameUp);
+                        overwriteToFirebase(`${selectedPathMachineForEditInfo}/nameDraw`, detail.nameDraw);
+                        overwriteToFirebase(`${selectedPathMachineForEditInfo}/detailSystemName`, detail.systemName);
+
+                        // Записи логов
+                        const logData = {
+                            typeLog: 'Настройка',
+                            dateNaladki: dateNow,
+                            detail: detail.name,
+                            detailSystemName: detail.systemName,
+                            install: install.name,
+                            timeDetail,
+                            timeChangeDetail,
+                            nameUp,
+                            naladchik: selectedWorkerFio
+                        };
+
+                        writeToFirebase(`logs/${selectedPathMachineForEditInfo}/machines/${dateNow}`, logData);
+                        writeToFirebase(`logs/details/${detail.systemName}/machines/${dateNow}`, {
+                            ...logData,
+                            machinePath: selectedPathMachineForEditInfo,
+                            machineName: machine.name,
+                            machineType: machine.typeMachine
+                        });
+                        writeToFirebase(`logs/workers/${selectedWorker}/machines/${dateNow}`, {
+                            typeLog: 'настройка станка',
+                            dateNaladki: dateNow,
+                            detail: detail.name,
+                            install: install.name,
+                            machinePath: selectedPathMachineForEditInfo,
+                            timeDetail,
+                            nameUp,
+                            timeChangeDetail
+                        });
+
+                        // Очистка формы
+                        document.querySelector(`#buttonGoToSelectDetailForEditMachine`).textContent = `Выбрать деталь`;
+                        document.querySelector(`#inputSetupNameUpDetail`).value = ``;
+                        document.querySelector(`#inputSetupTimeChangeDetail`).value = ``;
+                        document.querySelector(`#inputSetupTimeDetail`).value = ``;
+                        closeAllAllerts();
+                        clickTypeMachines(selectedTypeMachinesPanel);
+                        closeAllertDownload();
+                    });
+                });
+            });
+
+        } else {
+            pError.classList.remove(`display-none`);
+            pError.textContent = 'Выберите деталь и заполните все поля';
+        }
+    }
+
+    async function clickStartWork() {
+        openAllertDownload();
+        const dateNow = Date.now();
+        let actualyLogs = [];
+        const worker = await asyncReadToFirebase(`workers/${selectedWorker}`);
+        // если человека не было на работе то изменить его статус
+        if(worker.status !== 'На работе'){
+            await asyncOverwriteToFirebase(`workers/${selectedWorker}/status`, 'На работе');
+            await asyncOverwriteToFirebase(`workers/${selectedWorker}/dateActualyWorkDay`, dateNow);
+        }
+
+
+        for(machinePath of selectedMachines){
+            const machine = await asyncReadToFirebase(machinePath);
+
+            if(machine.status != 'Занят'){
+                await asyncOverwriteToFirebase(`${machinePath}/status`, 'Занят');
+                await asyncOverwriteToFirebase(`${machinePath}/startTime`, dateNow);
+                await asyncOverwriteToFirebase(`${machinePath}/operator`, selectedWorkerFio);
+
+                const log = {
+                    typeLog: 'станок',
+                    machine: machine.name,
+                    machineSystemName: machine.systemName,
+                    typeOperation: 'изготовление',
+                    detail: machine.detail,
+                    install: machine.install,
+                    nameDraw: machine.nameDraw,
+                    timeDetail: machine.timeDetail,
+                    timeChangeDetail: machine.timeChangeDetail,
+                    detailSystemName: machine.detailSystemName,
+                    naladchik: machine.naladchik,
+                    dateNaladki: machine.dateNaladki,
+                    startTime: dateNow,
+                    typeMachine: machine.typeMachine
+                };
+
+                actualyLogs.push(log);
+            } else if(machine.status == 'Занят' && machine.operator.trim() == selectedWorkerFio.trim()){
+                const log = {
+                    typeLog: 'станок',
+                    machine: machine.name,
+                    machineSystemName: machine.systemName,
+                    typeOperation: 'изготовление',
+                    detail: machine.detail,
+                    install: machine.install,
+                    timeDetail: machine.timeDetail,
+                    timeChangeDetail: machine.timeChangeDetail,
+                    detailSystemName: machine.detailSystemName,
+                    naladchik: machine.naladchik,
+                    dateNaladki: machine.dateNaladki,
+                    startTime: machine.startTime,
+                    typeMachine: machine.typeMachine
+                };
+
+                actualyLogs.push(log);
+                
+            } else {
+                delete selectedMachines[machinePath];
+            }
+            
+        }
+
+        // Перезаписываем логи для работника
+        await asyncOverwriteToFirebase(`workers/${selectedWorker}/actualyLogs`, actualyLogs);
+        closeAllertDownload();
+        location.href = 'google.com';
+    }
+
+    function clickConfirmExit(){
+        location.href = 'google.com';
+    }
+
+    function clickExit(){
+        document.querySelector(`#allertConfirmExit`).classList.remove(`display-none`);
+        document.querySelector(`#bgForAllert`).classList.remove(`display-none`);
+    }
+
+    function clickRemoveActualMachine(typeMachine, nameMachine, tag){
+        selectedActiveMachineNameForDelete = nameMachine;
+        selectedActiveMachineTypeForDelete = typeMachine;
+        selectedActiveMachineMenuForDelete = tag;
+        document.querySelector('#bgForAllert').classList.remove('display-none');
+        document.querySelector('#allertRemoveActualMachine').classList.remove('display-none');
+        document.querySelector('#allertRemoveActualMachine input').value = '';
+        document.querySelector('#allertRemoveActualMachine .p-error').classList.add('display-none');
+    }
+
+    async function clickConfirmRemoveActualMachine(){
+        const inputCountDetails = document.querySelector('#allertRemoveActualMachine input');
+        const pError = document.querySelector(`#allertRemoveActualMachine .p-error`);
+        if(inputCountDetails.value > 0){
+            openAllertDownload();
+            const machine = await asyncReadToFirebase(`machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}`);
+            // с переменной откидывается
+            selectedMachines = selectedMachines.filter(item => item !== `machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}`);
+            // с бд откидывается
+            const actualyLogs = await asyncReadToFirebase(`workers/${selectedWorker}/actualyLogs`);
+            for (const [key, actualyLog] of Object.entries(actualyLogs)) {
+                if (actualyLog.machineSystemName == selectedActiveMachineNameForDelete && actualyLog.typeMachine == selectedActiveMachineTypeForDelete) {
+                    await asyncOverwriteToFirebase(`workers/${selectedWorker}/actualyLogs/${key}`, {});
+                }
+            }
+            // создание лога
+            const dateNow = Date.now();
+            let objLog = {
+                countDetails: inputCountDetails.value,
+                dateNaladki: machine.dateNaladki,
+                detail: machine.detail,
+                nameDraw: machine.nameDraw,
+                nameUp: machine.nameUp,
+                detailSystemName: machine.detailSystemName,
+                endTime: dateNow,
+                install: machine.install,
+                machine: machine.name,
+                machineSystemName: machine.systemName,
+                typeMachine: machine.typeMachine,
+                naladchik: machine.naladchik,
+                operator: selectedWorkerFio,
+                startTime: machine.startTime,
+                timeChangeDetail: machine.timeChangeDetail,
+                timeDetail: machine.timeDetail,
+                typeLog: `Производство`,
+                typeOperation: 'изготовление'
+            };
+            
+            const objUnconfirmedLog = {
+                workerPath: `logs/workers/${selectedWorker}/machines/${dateNow}`,
+                detailPath: `logs/details/${objLog.detailSystemName}/machines/${dateNow}`,
+                machinePath: `logs/machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}/machines/${dateNow}`,
+                sendDate: dateNow
+            };
+
+            // перезаписывание информации, и запись всех логов
+            await asyncWriteToFirebase(`logs/workers/${selectedWorker}/machines/${dateNow}`, objLog);
+            await asyncWriteToFirebase(`logs/machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}/machines/${dateNow}`, objLog);
+            await asyncWriteToFirebase(`logs/details/${objLog.detailSystemName}/machines/${dateNow}`, objLog);
+            await asyncWriteToFirebase(`logs/uncorfirmedLogs/countDetails/${dateNow}`, objUnconfirmedLog);
+
+            await asyncOverwriteToFirebase(`machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}/status`, 'Выключен');
+            await asyncOverwriteToFirebase(`machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}/startTime`, '-');
+            await asyncOverwriteToFirebase(`machines/${selectedActiveMachineTypeForDelete}/machines/${selectedActiveMachineNameForDelete}/operator`, '-');
+
+            closeAllAllerts();
+            selectedActiveMachineMenuForDelete.remove();
+            closeAllertDownload();
+            
+            if(selectedActiveMachineTypeForDelete == selectedTypeMachinesPanel && !document.querySelector(`#machinesListPanel`).classList.contains('display-none')){
+                clickTypeMachines(selectedTypeMachinesPanel);
+            }
+        } else {
+            pError.classList.remove('display-none');
+            pError.textContent = 'Введите количество деталей';
+        }
+    }
+
+    function closeAllAllerts(){
+        const listAllerts = ['bgForAllert','allertRemoveActualMachine', 'allertErrorEndWorkDay', 'allertSetupMachine', 'allertSelectPart', 'allertSelectInstallForPart',
+            `allertNoSetupMachine`, `allertConfirmEndWorkDay`, `allertStatTwoWeek`, `allertConfirmExit`, `allertReductDetail`, `allertCalculateSalary`,
+            `allertReductCountDetailsInUnconfirmLog`, `allertAddDetailInStorage`, `allertAddDetailInStorageCount`, `allertSelectDetailInStorage`,
+            `allertReductGrafikWorkersDay`
+        ];
+
+        Object.values(listAllerts).forEach(allert => {
+            document.querySelector(`#${allert}`).classList.add('display-none');
+        })
+    }
+
+    async function selectDateForReductGrafik(){
+        openAllertDownload();
+        const inputDate = document.querySelector(`#inputSelectedDateForReductGrafikWorker`);
+        const strGrafikThisDay = await asyncReadToFirebase(`grafik/workers/${inputDate.value}`);
+        const inputReductGrafikDayWorkers = document.querySelector(`#inputReductGrafikDayWorkers`);
+
+        if(strGrafikThisDay){
+
+            inputReductGrafikDayWorkers.value = `${strGrafikThisDay.split(",").length} Человек`;
+        } else {
+            inputReductGrafikDayWorkers.value = `0 Человек`;
+        }
+
+        closeAllertDownload();
+    }
+
+    function clickRemoveMachine(systemName, type, tag){
+        if(type == selectedTypeMachinesPanel){
+            clickTypeMachines(selectedTypeMachinesPanel);
+        }
+        selectedMachines = selectedMachines.filter(item => item !== `machines/${type}/machines/${systemName}`);
+        tag.remove();
+        try{
+            const btn = document.getElementById(`button${type}/machines/${systemName}`);
+            btn.textContent = 'Выбрать';
+            btn.removeAttribute('id');
+            btn.style.backgroundColor = "green";
+        }catch(e){}
+    }
+    
+    async function clickEndWorkDay() {
+        closeAllAllerts();
+        if (selectedMachines.length > 0) {
+            document.querySelector('#allertErrorEndWorkDay').classList.remove('display-none');
+            document.querySelector('#bgForAllert').classList.remove('display-none');
+            return;
+        }
+        openAllertDownload();
+
+        try {
+            // 1. Обнуляем актуальные логи
+            await overwriteToFirebase(`workers/${selectedWorker}/actualyLogs`, '');
+
+            // 2. Читаем данные о работнике
+            const worker = await new Promise((resolve, reject) => {
+                readToFirebase(`workers/${selectedWorker}`, data => {
+                    if (data) resolve(data);
+                    else reject(new Error('Ошибка при получении данных работника'));
+                });
+            });
+            
+            // 3. Создаём лог завершения рабочего дня
+            const objLogEndWorkDay = {
+                typeLog: 'Конец рабочего дня',
+                startWorkDay: worker.dateActualyWorkDay,
+                endWorkDay: Date.now()
+            };
+            
+
+            // 4. Записываем лог в Firebase
+            await writeToFirebase(`logs/workers/${selectedWorker}/workdays/${Date.now()}`, objLogEndWorkDay);
+
+            // 5. Обновляем дату последней смены и статус
+            await overwriteToFirebase(`workers/${selectedWorker}/dateActualyWorkDay`, '');
+            await overwriteToFirebase(`workers/${selectedWorker}/status`, 'Нет на работе');
+
+            // 6. Перенаправляем пользователя
+            location.href = 'google.com';
+
+        } catch (error) { }
+        closeAllertDownload();
+    }
+
+    function searchMachinesInType(){
+        const inputName = document.querySelector(`#inputSearchMachinesInType`);
+        const searchText = inputName.value;
+        const machines = document.querySelectorAll('.div-machine');
+
+        machines.forEach(machine => {
+            const machineName = machine.querySelector('h3').textContent.toLowerCase();  // Название машины
+           
+            // Если в названии машины есть искомый текст, показываем этот элемент, иначе скрываем
+            if (machineName.includes(searchText)) {
+                machine.style.display = 'block';  // Показываем машину
+            } else {
+                machine.style.display = 'none';  // Скрываем машину
+            }
+        });
+    }
+
+    function openAllertDownload() {
+        document.querySelector(`#bgDownloadSpinner`).classList.remove(`display-none`);
+        document.querySelector(`#downloadSpinner`).classList.remove(`display-none`);
+        
+        // Устанавливаем время начала загрузки
+        downloadStartTime = Date.now();
+        
+        // Настроим таймер для проверки, если прошло 10 секунд
+        downloadTimer = setTimeout(() => {
+            const elapsedTime = Date.now() - downloadStartTime;
+            if (elapsedTime >= 10000) {
+                // Если прошло 10 секунд или больше, перезагружаем страницу
+                console.log("Загрузка заняла слишком много времени. Перезагружаем страницу.");
+                location.reload(); // Перезагружаем страницу
+            }
+        }, 10000); // 10 секунд
+    }
+
+    function closeAllertDownload() {
+        document.querySelector(`#bgDownloadSpinner`).classList.add(`display-none`);
+        document.querySelector(`#downloadSpinner`).classList.add(`display-none`);
+        
+        // Проверяем, если был таймер, то очищаем его, так как загрузка завершена до 10 секунд
+        if (downloadTimer !== null) {
+            clearTimeout(downloadTimer);
+            downloadTimer = null; // Очищаем переменную таймера
+        }
+        
+        // Сбросим переменную времени, так как загрузка завершена
+        downloadStartTime = null;
+    }
+
+    function openAllertConfirmEndWorkday(){
+        document.querySelector(`#bgForAllert`).classList.remove(`display-none`);
+        document.querySelector(`#allertConfirmEndWorkDay`).classList.remove(`display-none`);
+    }
+
+   async function openAllertTwoWeekStat(timeStamp) {
+        openAllertDownload();
+        document.querySelector(`#allertStatTwoWeek`).classList.add('display-none');
+       
+        const startRange = getPastSaturday(timeStamp);
+        const endRange = getNextFriday(timeStamp);
+        const daysInRangeDates = getDaysInRangeForStatsTwoWeek(startRange, endRange);
+
+        const tbodyTableStatTwoWeek = document.querySelector(`#bodyTableStatTwoWeek`);
+        const tHeadTableStatTwoWeek = document.querySelector(`#headTableStatTwoWeek`);
+
+        tHeadTableStatTwoWeek.innerHTML = `
+            <tr>
+                <th>Сб</th>
+                <th>Вс</th>
+                <th>Пн</th>
+                <th>Вт</th>
+                <th>Ср</th>
+                <th>Чт</th>
+                <th>Пт</th>
+                <th>Всего часов</th>
+            </tr>`;
+
+        const thsHead = Array.from(tHeadTableStatTwoWeek.querySelectorAll("th"));
+
+        await printHeadTable();
+        await printBodyTable();
+
+        document.querySelector(`#allertStatTwoWeek`).classList.remove('display-none');
+        document.querySelector(`#bgForAllert`).classList.remove('display-none');
+        document.querySelector(`#h2DatesRangeStatTwoWeek`).textContent =
+            `${getNumberAndMountForDateNow(startRange)} - ${getNumberAndMountForDateNow(endRange)}`;
+        closeAllertDownload();
+
+        document.querySelector(`#buttonDoubleSkipStatTwoWeekLeft`).onclick = () => openAllertTwoWeekStat(timeStamp - 1209600000);
+        document.querySelector(`#buttonSkipStatTwoWeekLeft`).onclick = () => openAllertTwoWeekStat(timeStamp - 604800000);
+        document.querySelector(`#buttonSkipStatTwoWeekRight`).onclick = () => openAllertTwoWeekStat(timeStamp + 604800000);
+        document.querySelector(`#buttonDoubleSkipStatTwoWeekRight`).onclick = () => openAllertTwoWeekStat(timeStamp + 1209600000);
+        
+
+        async function printHeadTable() {
+            for (const day of Object.values(daysInRangeDates)) {
+                const targetTh = thsHead.find(th =>
+                    th.textContent.trim().toLowerCase().slice(0, 2) === day.dayName.toLowerCase()
+                );
+                targetTh.innerHTML += `<br/>${getNumberAndMountForDateNow(day.dayStart)}`;
+            }
+        }
+
+        async function printBodyTable() {
+            tbodyTableStatTwoWeek.innerHTML = '';
+
+            const worker = await asyncReadToFirebase(`workers/${selectedWorker}`);
+            const logs = await asyncReadFirebaseByKeyRange(
+                `logs/workers/${selectedWorker}/workdays`,
+                daysInRangeDates[0].dayStart,
+                daysInRangeDates[13].dayEnd
+            ) || {};
+
+            // Получаем график по дням
+            const grafikData = {};
+            await Promise.all(daysInRangeDates.map(async (day) => {
+                const grafikDate = getFormattedDateForGrafik(day.dayStart);
+                const str = await asyncReadToFirebase(`grafik/workers/${grafikDate}`);
+                grafikData[day.number] = str?.split(',') || [];
+            }));
+
+            let totalTimeMilliseconds = 0;
+            let countWorkDays = 0;
+            let noPayedDays = 0;
+
+            tbodyTableStatTwoWeek.innerHTML += `
+                <tr id="tr-first-${selectedWorker}">
+                    ${daysInRangeDates.slice(0, 7).map(d => `<td id="td-${selectedWorker}-${d.number}">-<br>-</td>`).join('')}
+                    <td id="td-${selectedWorker}-totalTime" rowspan="2">-</td>
+                </tr>
+                <tr id="tr-two-${selectedWorker}">
+                    ${daysInRangeDates.slice(7).map(d => `<td id="td-${selectedWorker}-${d.number}">-<br>-</td>`).join('')}
+                </tr>
+            `;
+
+            // Обработка логов
+            for (const [key, log] of Object.entries(logs)) {
+                if (log.typeLog !== "Конец рабочего дня") continue;
+
+                const startDay = getDayOfMonth(log.startWorkDay);
+                const endDay = getDayOfMonth(log.endWorkDay);
+
+                const tdStart = document.querySelector(`#td-${selectedWorker}-${startDay}`);
+                const tdEnd = document.querySelector(`#td-${selectedWorker}-${endDay}`);
+
+                if (startDay === endDay) {
+                    if (tdStart) {
+                        tdStart.innerHTML = tdStart.innerHTML !== '-<br>-'
+                            ? `${tdStart.innerHTML}<br><br>${getHoursAndMinutesInDateNow(log.startWorkDay)}<br>${getHoursAndMinutesInDateNow(log.endWorkDay)}`
+                            : `${getHoursAndMinutesInDateNow(log.startWorkDay)}<br>${getHoursAndMinutesInDateNow(log.endWorkDay)}`;
+                    }
+                } else {
+                    if (tdStart) {
+                        tdStart.innerHTML = tdStart.innerHTML !== '-<br>-'
+                            ? `${tdStart.innerHTML}<br><br>${getHoursAndMinutesInDateNow(log.startWorkDay)}<br>->`
+                            : `${getHoursAndMinutesInDateNow(log.startWorkDay)}<br>->`;
+                    }
+                    if (tdEnd) {
+                        tdEnd.innerHTML = tdEnd.innerHTML !== '-<br>-'
+                            ? `${tdEnd.innerHTML}<br><br><-<br>${getHoursAndMinutesInDateNow(log.endWorkDay)}`
+                            : `<-<br>${getHoursAndMinutesInDateNow(log.endWorkDay)}`;
+                    }
+                }
+
+                if (log?.statusPayed === true) {
+                    tdStart?.classList.add('green-allocation');
+                    if (tdEnd && tdEnd !== tdStart) tdEnd.classList.add('green-allocation');
+                } else {
+                    noPayedDays++;
+                }
+
+                const diff = Number(log.endWorkDay) - Number(log.startWorkDay);
+                totalTimeMilliseconds += diff;
+                if (diff > 14400000) countWorkDays++;
+            }
+
+            // Добавляем время активной сегодняшней смены к итогам
+            if (worker?.dateActualyWorkDay) {
+                const now = Date.now();
+                const activeShiftStart = new Date(worker.dateActualyWorkDay).getTime();
+                if (now > activeShiftStart) {
+                    const activeShiftDuration = now - activeShiftStart;
+                    totalTimeMilliseconds += activeShiftDuration;
+
+                    // Увеличиваем количество смен, если длительность активной смены > 4 часа
+                    if (activeShiftDuration > 14400000) countWorkDays++;
+                }
+            }
+
+            // Подсветка и отображение времени актуальной смены в таблице (если есть)
+            try {
+                const now = new Date();
+                const dayOfMonth = now.getDate();
+                const timestampNow = now.getTime();
+                const tdToday = document.querySelector(`#td-${selectedWorker}-${dayOfMonth}`);
+
+                if (
+                    tdToday &&
+                    worker?.dateActualyWorkDay &&
+                    getDayOfMonth(worker.dateActualyWorkDay) === dayOfMonth &&
+                    worker.dateActualyWorkDay > daysInRangeDates[0].dayStart &&
+                    worker.dateActualyWorkDay < daysInRangeDates[13].dayEnd
+                ) {
+                    tdToday.classList.add(`yellow-allocation`);
+                    tdToday.innerHTML = getHoursAndMinutesInDateNow(worker.dateActualyWorkDay).trim();
+                }
+            } catch (e) {
+                console.warn('Ошибка при обработке сегодняшнего дня', e);
+            }
+
+            // Проверка по графику и добавление красных ячеек
+            daysInRangeDates.forEach(day => {
+                const k = day.number;
+                const td = document.querySelector(`#td-${selectedWorker}-${k}`);
+                const hasWorkInGrafik = grafikData[k]?.includes(selectedWorker);
+
+                const hasLog = Object.values(logs).some(log => {
+                    const d1 = getDayOfMonth(log.startWorkDay);
+                    return d1 == k;
+                }) || (
+                    worker?.dateActualyWorkDay &&
+                    getDayOfMonth(worker.dateActualyWorkDay) == k
+                );
+
+                if (hasWorkInGrafik && !hasLog && td) {
+                    td.classList.add('red-allocation');
+                }
+            });
+
+            // Общая информация
+            const totalTd = document.querySelector(`#td-${selectedWorker}-totalTime`);
+            let horlyRate = await asyncReadToFirebase(`workers/${selectedWorker}/horlyRate`);
+            if (horlyRate == null) horlyRate = 0;
+
+            totalTd.innerHTML = `
+                ${secondsToTimeFormat(totalTimeMilliseconds / 1000)} </br> ${countWorkDays} смен</br> 
+                <button onClick="openAllertCalculateSalary(${totalTimeMilliseconds / 1000}, ${countWorkDays}, ${horlyRate},'allertStatWorkersTwoWeen', 
+                '${selectedWorker}', ${startRange}, ${endRange})">Зарплата</button></br>
+            `;
+
+            if (noPayedDays === 0 && Object.values(logs).length > 0) {
+                document.querySelector(`#tr-first-${selectedWorker}`)?.classList.add('green-allocation');
+                document.querySelector(`#tr-two-${selectedWorker}`)?.classList.add('green-allocation');
+            }
+        }
+
+    }
+
+    function openAllertCalculateSalary(countSeconds, countDays, horlyRate, selector){
+        countSecondsTimeForCalculateSalary = countSeconds;
+        countDaysForCalculateSalary = countDays;
+        horlyRateForCalculateSalary = horlyRate;
+        selectorLastAllert = selector;
+        closeAllAllerts();
+        document.querySelector(`#spanCountWorkDaysForAllertSalary`).textContent = countDays;
+        document.querySelector(`#bgForAllert`).classList.remove('display-none');
+        document.querySelector(`#allertCalculateSalary`).classList.remove('display-none');
+        document.querySelector(`#spanCountHoursForAllertSalary`).textContent = secondsToTimeFormat(countSeconds);
+        document.querySelector(`#spanHorlyRateForAllertSalary`).textContent = `${horlyRate} грн/ч`;
+        calculateSumSalary();
+    }
+
+    function calculateSumSalary(){
+        const minusTimeObed = document.querySelector(`#checkboxMinusTimeObed`).checked;
+        let countHours = 0;
+        countHours = Math.round(countSecondsTimeForCalculateSalary / 3600);
+        if(minusTimeObed){
+            countHours = countHours - (1800 * countDaysForCalculateSalary) / 3600
+        }
+        document.querySelector(`#spanCountHoursForCalculateSalary`).textContent = countHours;
+        const res = horlyRateForCalculateSalary * countHours;
+        document.querySelector(`#spanResSumSalary`).textContent = `${res} грн`;
+    }
+
+    function closeAllertCalculatesalary(){
+        document.querySelector(`#allertCalculateSalary`).classList.add('display-none');
+        document.querySelector(`#allertStatTwoWeek`).classList.remove('display-none');
+    }
+
+    function closeAllPanels(){
+        document.querySelectorAll('#mainContainerPanels > div').forEach(panel => {
+            panel.classList.add('display-none');
+        });
+        document.querySelector(`#inputSelectDateForGrafikPanel`).classList.add('display-none');
+    }
+
+    async function printDetailsPanel() {
+        closeAllPanels();
+        document.querySelector('#h2TitlePanel').textContent = 'Детали';
+        printDetailsTableForDetailsPanel(limitForDownloadDetailsInDb);
+        document.querySelector('#detailsPanel').classList.remove('display-none');
+    }
+
+    async function printPanelGrafik(){
+        closeAllPanels();
+        document.querySelector('#h2TitlePanel').textContent = 'График смен';
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+
+        const formattedToday = `${yyyy}-${mm}-${dd}`;
+        document.querySelector(`#inputSelectDateForGrafikPanel`).value = formattedToday;
+        document.querySelector(`#inputSelectDateForGrafikPanel`).classList.remove('display-none');
+        await printTableGrafik();
+        document.querySelector(`#createGrafikPanel`).classList.remove('display-none');
+    }
+
+    async function printTableGrafik(){
+        openAllertDownload();
+        const inputSelectedDate = document.querySelector(`#inputSelectDateForGrafikPanel`);
+        document.querySelector(`#h2DateSelectedForGrafikCreatePanel`).textContent = `График на ${formatedInputDate('inputSelectDateForGrafikPanel')}`;
+
+        const tbody = document.querySelector(`#tbodyCreateGrafikPanel`);
+        tbody.innerHTML = '';
+
+        const strWorkersGrafikThisDay = await asyncReadToFirebase(`grafik/workers/${inputSelectedDate.value}`);
+        
+        if(!strWorkersGrafikThisDay){
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center;">Графика на ${formatedInputDate('inputSelectDateForGrafikPanel')} нет</td></tr>`;
+        } else {
+            for(const workerSystemName of strWorkersGrafikThisDay.split(',')){
+                const worker = await asyncReadToFirebase(`workers/${workerSystemName}`);
+                
+                const statusClass = worker.status === "На работе" ? "green-allocation" : "";
+                const time = formatDate(worker.dateActualyWorkDay);
+                let actualyPlaces = '-';
+                let workerDateActualyWorkDay = '-';
+
+                if (worker.dateActualyWorkDay && !isNaN(new Date(worker.dateActualyWorkDay).getTime())) {
+                    workerDateActualyWorkDay = formatDate(Number(worker.dateActualyWorkDay));
+                }
+
+                tbody.innerHTML += `
+                    <tr class="${statusClass}">
+                        <td>${worker.fio}</td>
+                        <td>${worker.status}</td>
+                        <td>${workerDateActualyWorkDay}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        closeAllertDownload();
+    }
+
+    async function reductGrafikDayWorkers() {
+        try{
+            openAllertDownload();
+            const tbody = document.querySelector(`#tbodyTableWorkersForAllertReductGrafikWorkers`);
+            tbody.innerHTML = '';
+            const inputSelectedDate = document.querySelector(`#inputSelectedDateForReductGrafikWorker`);
+            document.querySelector(`#allertReductGrafikWorkersDay h2`).textContent = `График работников на ${formatedInputDate(`inputSelectedDateForReductGrafikWorker`)}`;
+            
+            const strWorkersGrafikThisDay = await asyncReadToFirebase(`grafik/workers/${inputSelectedDate.value}`);
+            let arrayWorkersGrafikThisDay = [];
+            if(strWorkersGrafikThisDay){
+                arrayWorkersGrafikThisDay = strWorkersGrafikThisDay.split(",");
+            }
+            const workers = await asyncReadToFirebase(`workers`);
+
+            const sortedWorkers = Object.entries(workers).sort(([, a], [, b]) => {
+                const isAGuard = a.role === 'okhrana';
+                const isBGuard = b.role === 'okhrana';
+
+                if (isAGuard && !isBGuard) return 1;
+                if (!isAGuard && isBGuard) return -1;
+
+                    return a.fio.localeCompare(b.fio);
+                });
+
+            for(const [key, worker] of sortedWorkers){
+                if(arrayWorkersGrafikThisDay.includes(key)){
+                    tbody.innerHTML += `<td onclick="clickWorkerInTableReductGrafikDay(this, 'remove')" class="green-allocation" style="text-align: center;">${worker.fio}</td>`;
+                } else {
+                    tbody.innerHTML += `<td onclick="clickWorkerInTableReductGrafikDay(this, 'add')" style="text-align: center; cursor: pointer;">${worker.fio}</td>`;
+                }
+            }
+
+            openAllert(`allertReductGrafikWorkersDay`);
+            closeAllertDownload();
+        } catch(e){
+            closeAllertDownload();
+        }
+    }
+
+    function clickWorkerInTableReductGrafikDay(tag, type){
+        if(type == 'add'){
+            tag.className = 'green-allocation';
+            tag.onclick = function(){
+                clickWorkerInTableReductGrafikDay(tag, 'remove');
+            }; 
+        } else if(type == 'remove'){
+            tag.className = 'red-allocation';
+            tag.onclick = function(){
+                clickWorkerInTableReductGrafikDay(tag, 'add');
+            }; 
+        }
+    }
+
+    async function clickConfirmReductGragikDay() {
+        openAllertDownload();
+
+        const trsArray = document.querySelectorAll(`#tbodyTableWorkersForAllertReductGrafikWorkers tr`);
+        let selectedWorkersOnThisDayArray = [];
+        for (const tr of trsArray) {
+            const td = tr.querySelector('td');
+            if (td && td.classList.contains('green-allocation')) {
+                selectedWorkersOnThisDayArray.push(transliterate(td.textContent));
+            }
+        }
+
+        const selectedDate = document.querySelector(`#inputSelectedDateForReductGrafikWorker`).value;
+
+        await asyncOverwriteToFirebase(`grafik/workers/${document.querySelector(`#inputSelectedDateForReductGrafikWorker`).value}`, selectedWorkersOnThisDayArray.join(','));
+        document.querySelector(`#inputReductGrafikDayWorkers`).value = `${selectedWorkersOnThisDayArray.length} Человек`;
+        closeAllAllerts();
+        closeAllertDownload();
+    }
+
+    function openAllert(idAllert){
+        document.querySelector(`#bgForAllert`).classList.remove(`display-none`);
+        document.querySelector(`#${idAllert}`).classList.remove(`display-none`);
+    }
+
+    async function printDetailsTableForDetailsPanel(limit){
+        openAllertDownload();
+        const bodyTable = document.querySelector(`#detailsPanel tbody`);
+        bodyTable.innerHTML = '';
+        const details = await asyncReadFirstNItems(`details`, limit);
+        if(details.length > 0){
+            details.forEach(({ key, value: detail }) => {
+                bodyTable.innerHTML += `
+                    <tr onclick="openAllertReductDetail('${key}')" style="cursor:pointer;">
+                        <td>${detail.name}</td>
+                        <td>${detail.nameDraw}</td>
+                        <td>${detail.countInstalls}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            bodyTable.innerHTML = `
+            <tr>
+                <td colspan="3">Детали не найдены</td>
+            </tr>
+            `;
+        }
+
+        const countAllDetail = await asyncReadToFirebase(`detailsCount`);
+        if(limit > countAllDetail){
+            document.querySelector(`#detailsPanel .navigation-menu-table h5`).textContent = `Загружено ${countAllDetail} из ${countAllDetail}`;
+            document.querySelector(`#detailsPanel .navigation-menu-table button`).onclick = function () { };
+        } else {
+            document.querySelector(`#detailsPanel .navigation-menu-table h5`).textContent = `Загружено ${limit} из ${countAllDetail}`;
+            document.querySelector(`#detailsPanel .navigation-menu-table button`).onclick = function () { printDetailsTableForDetailsPanel(limit+limitForDownloadDetailsInDb) };
+        }
+
+        closeAllertDownload();
+    }
+
+    function selectItemInLeftMenu(selectButton){
+        const listSubmenusId = [
+            `menuTypesMachines`
+        ];
+
+        const items = document.querySelectorAll('#mainPartLeftColumn .item');
+        const buttonsTypesMachines = document.querySelectorAll(`#menuTypesMachines .group-div`);
+
+        Object.values(items).forEach(button => {
+            button.classList.remove(`select-item`);
+        });
+
+        selectButton.classList.add(`select-item`);
+
+        Object.values(listSubmenusId).forEach(submenuId => {
+            document.querySelector(`#${submenuId}`).classList.add('display-none');
+        });
+
+        Object.values(buttonsTypesMachines).forEach(button => {
+            button.classList.remove(`selectedGroup`);
+        })
+
+        
+    }
+
+    async function addNewDetail(idInputNameDetail, idInputNameDrawDetail, idPerror, selectedPanel){
+        const inputNameNewDetail = document.querySelector(`#${idInputNameDetail}`);
+        const inputNameDrawNewDetail = document.querySelector(`#${idInputNameDrawDetail}`);
+        const pError = document.querySelector(`#${idPerror}`);
+
+        const name = inputNameNewDetail.value.trim();
+        const nameDraw = inputNameDrawNewDetail.value.trim();
+
+        // Сброс цвета основного ввода
+        inputNameNewDetail.style.borderColor = '';
+        inputNameDrawNewDetail.style.borderColor = '';
+        pError.classList.add('display-none');
+
+        // Проверка имени детали и чертежа
+        if (name.length <= 1 || nameDraw.length === 0) {
+            pError.classList.remove('display-none');
+            pError.textContent = 'Заполните все поля';
+            if (name.length <= 1) inputNameNewDetail.style.borderColor = 'red';
+            if (nameDraw.length === 0) inputNameDrawNewDetail.style.borderColor = 'red';
+            return;
+        }
+
+        // Формируем объект после всех валидаций
+        const systemName = `${transliterate(name)}_${transliterate(nameDraw)}`;
+        const objNewDetail = {
+            name: name,
+            nameDraw: nameDraw,
+            systemName: systemName,
+            countInstalls: 0,
+        };
+
+        try{
+            openAllertDownload();
+            await asyncWriteToFirebase(`details/${systemName}`, objNewDetail);
+            const countDetails = await asyncReadToFirebase(`detailsCount`);
+            if(countDetails){
+                await asyncOverwriteToFirebase(`detailsCount`, countDetails+1);
+            } else {
+                await asyncOverwriteToFirebase(`detailsCount`, 1);
+            }
+
+            inputNameNewDetail.value = '';
+            inputNameDrawNewDetail.value = '';
+            closeAllertDownload();
+            if(selectedPanel == 'storage'){
+                printPanelStorage();
+            } else if(selectedPanel == 'details'){
+                printDetailsPanel();
+            }
+        } catch (e) {
+            pError.classList.remove('display-none');
+            pError.textContent = 'Деталь с таким именем и названием чертежа уже есть';
+            inputNameDrawNewDetail.style.borderColor = 'red';
+            inputNameNewDetail.style.borderColor = 'red';
+        }
+    }
+
+    function changePageTableDetails(type){
+        if ((type === 1 && numberPageTableDetail < Math.ceil(allDetails.length/countRowsInTableDetail)) ||
+            (type === -1 && numberPageTableDetail > 1)) {
+            numberPageTableDetail += type;
+            printDetailsInTable();
+        }
+    }
+
+    function changeCountRowsInTableDetails(i){
+        if(i != countRowsInTableDetail){
+            countRowsInTableDetail = i;
+            const buttons = document.querySelectorAll(`#containerButtonsCountRowsTableDetails button`);
+
+            Object.values(buttons).forEach(button => {
+                if(button.textContent == countRowsInTableDetail){
+                    button.classList.add('select-button');
+                } else {
+                    button.classList.remove('select-button');
+                }
+            });
+
+            printDetailsInTable();
+        }
+    }
+
+    function openAllertReductDetail(detailSystemName){
+        openAllertDownload();
+        listenToFirebase(`details/${detailSystemName}`, detail => {
+            const bodyDetailInstallsForReduct = document.querySelector(`#bodyDetailInstallsForReduct`);
+            bodyDetailInstallsForReduct.innerHTML = '';
+            
+            if(!detail.installs){
+                bodyDetailInstallsForReduct.innerHTML += `
+                    <tr>
+                        <td colspan=3>Нет установок для данной детали</td>  
+                    </tr>
+                `;
+            } else {
+                Object.entries(detail.installs).forEach(([key, install]) => {
+                    bodyDetailInstallsForReduct.innerHTML += `
+                        <tr>
+                            <td>${install.name}</td>    
+                            <td>${install.typeMachinesName}</td>   
+                            <td><i onclick="deleteInstallForDetail(${detail.countInstalls}, '${detailSystemName}', '${detailSystemName}/installs/${key}')" style="color: #ff4d4d; font-size: 18px; cursor: pointer;" class="fa-solid fa-trash"></i></td> 
+                        </tr>
+                    `;
+                });
+            }
+            
+            document.querySelector(`#allertReductDetail`).classList.remove('display-none');
+            document.querySelector(`#h2DetailNameForReductDetail`).textContent = `Меню установок для ${detail.name}`;
+            document.querySelector(`#h5NameDrawDetailForReructDetail`).textContent = `Чертеж № ${detail.nameDraw}`;
+            document.querySelector(`#h5CountInstallsDetailForReductDetail`).textContent = `Кол-во установок: ${detail.countInstalls}`;
+            document.querySelector(`#bgForAllert`).classList.remove('display-none');
+
+            document.querySelector(`#inputNewInstallNameForDetail`).value = '';
+            document.querySelector(`#pErrorAddNewInstallForDetail`).classList.add('display-none');
+
+            readToFirebase(`machines`, machines => {
+                const selectorTypeMachine = document.querySelector(`#selectTypesMachinesForReductDetail`);
+                selectorTypeMachine.innerHTML = `<option value="">Выберите тип станков</option>`;
+                Object.entries(machines).forEach(([key, typeMachines]) => {
+                    selectorTypeMachine.innerHTML += `<option value="${key}">${typeMachines.name}</option>`;
+                });
+            })
+
+            document.querySelector(`#allertReductDetail button`).onclick = function() { addNewInstallForDetail(detailSystemName, detail.countInstalls, `details/${detailSystemName}/installs/${detail.countInstalls}`) };
+            closeAllertDownload();
+        });
+    }
+
+    function addNewInstallForDetail(detailSystemName, detailCountInstalls, pathForAddNewInstall){
+        const inputNewInstallNameForDetail = document.querySelector(`#inputNewInstallNameForDetail`);
+        const selectTypesMachinesForReductDetail = document.querySelector(`#selectTypesMachinesForReductDetail`);
+        const pError = document.querySelector(`#pErrorAddNewInstallForDetail`);
+        const objNewInstall = {
+            name : inputNewInstallNameForDetail.value,
+            typeMachinesName : selectTypesMachinesForReductDetail.options[selectTypesMachinesForReductDetail.selectedIndex].textContent,
+            typeMachinesSystemName : selectTypesMachinesForReductDetail.value
+        };
+
+        if(inputNewInstallNameForDetail.value.length > 2 && selectTypesMachinesForReductDetail.value.length > 0){
+            writeToFirebase(pathForAddNewInstall, objNewInstall);
+            overwriteToFirebase(`details/${detailSystemName}/countInstalls`, detailCountInstalls+1);
+            pError.classList.add('display-none');
+            inputNewInstallNameForDetail.value = '';
+            selectTypesMachinesForReductDetail.value = '';
+        } else {
+            pError.classList.remove(`display-none`);
+            pError.textContent = `Заполните все поля`;
+        }
+    }
+
+    function deleteInstallForDetail(countInstallsDetail, detailSystemName, pathInstallForDelete){
+        overwriteToFirebase(`details/${pathInstallForDelete}`, {});
+        overwriteToFirebase(`details/${detailSystemName}/countInstalls`, countInstallsDetail-1);
+    }
+
+    async function printPanelUnconfirmedLogsCountDetails() {
+        
+        openAllertDownload();
+        closeAllPanels();
+        document.querySelector(`#h2TitlePanel`).textContent = 'Проверка количества деталей';
+        
+        const containerUnConfirmedLogs = document.querySelector(`#containerUnConfirmedLogs`);
+        containerUnConfirmedLogs.innerHTML = '';
+        document.querySelector(`#unconfirmedLogsPanel`).classList.remove('display-none');
+
+        const unconfirmedLogs = await asyncReadToFirebase(`logs/uncorfirmedLogs/countDetails`);
+        if (!unconfirmedLogs) {
+            containerUnConfirmedLogs.innerHTML = 'Нет логов для проверки';
+            closeAllertDownload();
+            return;
+        }
+
+        for (const [key, unconfirmedLog] of Object.entries(unconfirmedLogs).reverse()) {
+            const log = await asyncReadToFirebase(unconfirmedLog.workerPath);
+            if (!log) continue;
+
+            containerUnConfirmedLogs.innerHTML += `
+                <div class="div-unconfirmlog">
+                    <div class="container">
+                        <h3>${log.detail}</h3>
+                        <div class="state-log">${log.countDetails} шт.</div>
+                    </div>
+                    <div class="container">
+                        <span>Чертеж:</span>
+                        <p>${log.nameDraw || '-'}</p>
+                    </div>
+                    <div class="container">
+                        <span>Сделал:</span>
+                        <p>${formatName(log.operator)}</p>
+                    </div>
+                    <div class="container">
+                        <span>Станок:</span>
+                        <p>${log.machine}</p>
+                    </div>
+                    <div class="container">
+                        <span>Установка:</span>
+                        <p>${log.install}</p>
+                    </div>
+                    <div class="container">
+                        <span>Дата сдачи:</span>
+                        <p>${formatDate(unconfirmedLog.sendDate)}</p>
+                    </div>
+                    <button onclick="clickConfirmUnConfirmedLog('${key}')" style="background-color: green; cursor: pointer;">Подтвердить</button>
+                    <button onclick="clickEditCountDetailsForUnConfirmedLog('${key}')" style="background-color: #ffc107; cursor: pointer;">Изменить количество</button>
+                </div>
+            `;
+        }
+
+        closeAllertDownload();
+    }
+
+    function printPanelUnconfirmedLogsCountDetails1(){
+        openAllertDownload();
+        closeAllPanels();
+
+        document.querySelector(`#h2TitlePanel`).textContent = 'Проверка количества деталей';
+        const containerUnConfirmedLogs = document.querySelector(`#containerUnConfirmedLogs`);
+
+        readToFirebase(`logs/uncorfirmedLogs/countDetails`, unconfirmedLogs => {
+            if(!unconfirmedLogs){
+                containerUnConfirmedLogs.innerHTML = 'Нет логов для проверки';
+                return;
+            }
+            containerUnConfirmedLogs.innerHTML = '';
+            Object.entries(unconfirmedLogs).forEach(([key, unconfirmedLog]) => {
+                readToFirebase(unconfirmedLog.workerPath, log => {
+                    if(!log){
+                        return;
+                    }
+                    containerUnConfirmedLogs.innerHTML += `
+                        <div class="div-unconfirmlog">
+                            <div class="container">
+                                <h3>${log.detail}</h3>
+                                <div class="state-log">${log.countDetails} шт.</div>
+                            </div>
+                            <div class="container">
+                                <span>Чертеж:</span>
+                                <p>${log.nameDraw}</p>
+                            </div>
+                            <div class="container">
+                                <span>Сделал:</span>
+                                <p>${formatName(log.operator)}</p>
+                            </div>
+                            <div class="container">
+                                <span>Станок:</span>
+                                <p>${log.machine}</p>
+                            </div>
+                            <div class="container">
+                                <span>Установка:</span>
+                                <p>${log.install}</p>
+                            </div>
+                            <div class="container">
+                                <span>Дата сдачи:</span>
+                                <p>${formatDate(unconfirmedLog.sendDate)}</p>
+                            </div>
+                            <button onclick="clickConfirmUnConfirmedLog(${key})" style="background-color: green;">Подтвердить</button>
+                            <button onclick="clickEditCountDetailsForUnConfirmedLog(${key})" style="background-color: #ffc107;">Изменить количество</button>
+                        </div>
+                    `;
+                });
+            });
+        });
+
+        document.querySelector(`#unconfirmedLogsPanel`).classList.remove('display-none');
+        closeAllertDownload();
+    }
+
+    async function clickConfirmUnConfirmedLog(keyUnConfirmedLog) {
+        await overwriteToFirebase(`logs/uncorfirmedLogs/countDetails/${keyUnConfirmedLog}`,{});
+        printPanelUnconfirmedLogsCountDetails();
+    }
+
+    async function clickEditCountDetailsForUnConfirmedLog(keyUnConfirmedLog){
+        openAllertDownload();
+        const unconfirmedLog = await asyncReadToFirebase(`logs/uncorfirmedLogs/countDetails/${keyUnConfirmedLog}`);
+        const log = await asyncReadToFirebase(unconfirmedLog.workerPath);
+        const allertReductCountDetailsInUnconfirmLog = document.querySelector(`#allertReductCountDetailsInUnconfirmLog`);
+        allertReductCountDetailsInUnconfirmLog.innerHTML = `
+            <h5>Введите корректное количество деталей</h5>
+            <div class="container">
+                <p>Деталь:</p>
+                <span>${log.detail}</span>
+            </div>
+            <div class="container">
+                <p>Установка:</p>
+                <span>${log.install}</span>
+            </div>
+            <div class="container">
+                <p>Количество:</p>
+                <span>${log.countDetails} шт.</span>
+            </div>
+            <div class="container">
+                <p>Чертеж:</p>
+                <span>${log.nameDraw}</span>
+            </div>
+            <div class="container">
+                <p>Сделал:</p>
+                <span>${formatName(log.operator)}</span>
+            </div>
+            <div class="container">
+                <p>Станок:</p>
+                <span>${log.machine}</span>
+            </div>
+            <div class="container">
+                <p>Дата сдачи:</p>
+                <span>${formatDate(unconfirmedLog.sendDate)}</span>
+            </div>
+            <input type="number" placeholder="Кол-во деталей">
+            <p style="margin-bottom: 6px !important;" class="p-error display-none">Введите количество деталей</p>
+            <button style="cursor: pointer;" onclick="clickConfirmEditCountDetailsForUnconfirmedLog(${keyUnConfirmedLog})">Подтвердить</button>
+        `;
+        closeAllertDownload();
+        allertReductCountDetailsInUnconfirmLog.classList.remove('display-none');
+        document.querySelector(`#bgForAllert`).classList.remove('display-none');
+    }
+
+    async function clickConfirmEditCountDetailsForUnconfirmedLog(keyUnConfirmedLog){
+        openAllertDownload();
+        const inputNewCountDetails = document.querySelector(`#allertReductCountDetailsInUnconfirmLog input`); 
+        const newCountDetails = inputNewCountDetails.value;
+        const pError = document.querySelector(`#allertReductCountDetailsInUnconfirmLog .p-error`); 
+        if(newCountDetails > 0){
+            pError.classList.add(`display-none`);
+            const unconfirmedLog = await asyncReadToFirebase(`logs/uncorfirmedLogs/countDetails/${keyUnConfirmedLog}`);
+            await asyncOverwriteToFirebase(`${unconfirmedLog.workerPath}/countDetails`, newCountDetails);
+            await asyncOverwriteToFirebase(`${unconfirmedLog.detailPath}/countDetails`, newCountDetails);
+            await asyncOverwriteToFirebase(`${unconfirmedLog.machinePath}/countDetails`, newCountDetails);
+            await asyncOverwriteToFirebase(`logs/uncorfirmedLogs/countDetails/${keyUnConfirmedLog}`, {});
+            document.querySelector(`#allertReductCountDetailsInUnconfirmLog`).classList.add('display-none');
+            document.querySelector(`#bgForAllert`).classList.add('display-none');
+            closeAllertDownload();
+            printPanelUnconfirmedLogsCountDetails();
+        } else {
+            pError.classList.remove(`display-none`);
+            closeAllertDownload();
+        } 
+    }
+
+    async function printPanelStorage(){
+        document.querySelector(`#h2TitlePanel`).textContent = 'Склад деталей';
+        closeAllPanels();
+        document.querySelector(`#storageDetailsPanel`).classList.remove('display-none');
+        await printDetailsInTableInStorage(limitForDownloadDetailsInDb);
+    }
+
+    async function printDetailsInTableInStorage(limit){
+        openAllertDownload();
+        const bodyTableDetailsStorage = document.querySelector('#bodyTableDetailsStorage');
+        bodyTableDetailsStorage.innerHTML = '';
+        const detailsInStorage = await asyncReadFirstNItems(`storage/details`, limit);
+    
+        if(detailsInStorage.length > 0){
+            detailsInStorage.forEach(({ key, value: detail }) => {
+                bodyTableDetailsStorage.innerHTML += `
+                    <tr onclick="openAllertSelectDetailInStorage('${detail.systemName}')" style="cursor:pointer;">
+                        <td>${detail.name}</td>
+                        <td>${detail.nameDraw}</td>
+                        <td>${detail.countDetails}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            bodyTableDetailsStorage.innerHTML += `<tr><td colspan=3>Нет деталей на складе</td></tr>`;
+        }
+        
+        let countDetailInStorage = await asyncReadToFirebase(`storage/countDetailsInStorage`);
+        if(!countDetailInStorage){
+            countDetailInStorage = 0;
+        }
+        if(limit < countDetailInStorage){
+            document.querySelector(`#storageDetailsPanel .navigation-menu-table h5`).textContent = `Загружено ${limit} из ${countDetailInStorage}`;
+            document.querySelector(`#storageDetailsPanel .navigation-menu-table button`).onclick = function () { printDetailsInTableInStorage(limit+limitForDownloadDetailsInDb) };
+        } else {
+            document.querySelector(`#storageDetailsPanel .navigation-menu-table h5`).textContent = `Загружено ${countDetailInStorage} из ${countDetailInStorage}`;
+            document.querySelector(`#storageDetailsPanel .navigation-menu-table button`).onclick = function () {  };
+        }
+
+        closeAllertDownload();
+    }
+
+    async function openAllertAddDetailInStorage(){
+        await printDetailsInTableToAddDetailInStorage(limitForDownloadDetailsInDb);
+        document.querySelector(`#bgForAllert`).classList.remove('display-none');
+    }
+
+    async function printDetailsInTableToAddDetailInStorage(limit){
+        openAllertDownload();
+        document.querySelector(`#allertAddDetailInStorage`).classList.add('display-none');
+        const bodyTable = document.querySelector('#bodyTableSelectedDetailForStorage');
+        bodyTable.innerHTML = '';
+        const details = await asyncReadFirstNItems(`details`, limit);
+    
+        if(details.length > 0){
+            details.forEach(({ key, value: detail }) => {
+                bodyTable.innerHTML += `
+                    <tr onclick=openAllertAddDetailCountToStorage('${key}') style="cursor:pointer;">
+                        <td>${detail.name}</td>
+                        <td>${detail.nameDraw}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            bodyTable.innerHTML += `<tr><td colspan=2>Нет деталей</td></tr>`;
+        }
+
+        let countDetails = await asyncReadToFirebase(`detailsCount`);
+        if(!countDetails){
+            countDetails = 0;
+        }
+        if(limit < countDetails){
+            document.querySelector(`#allertAddDetailInStorage .navigation-menu-table h5`).textContent = `Загружено ${limit} из ${countDetails}`;
+            document.querySelector(`#allertAddDetailInStorage .navigation-menu-table button`).onclick = function () { printDetailsInTableToAddDetailInStorage(limit+limitForDownloadDetailsInDb) };
+        } else {
+            document.querySelector(`#allertAddDetailInStorage .navigation-menu-table h5`).textContent = `Загружено ${countDetails} из ${countDetails}`;
+            document.querySelector(`#allertAddDetailInStorage .navigation-menu-table button`).onclick = function () {  };
+        }
+        document.querySelector(`#allertAddDetailInStorage`).classList.remove('display-none');
+        closeAllertDownload();
+    }
+
+    async function openAllertAddDetailCountToStorage(detailSystemName){
+        document.querySelector(`#allertAddDetailInStorage`).classList.add('display-none');
+        openAllertDownload();
+        
+        const detailInStorage = await asyncReadToFirebase(`storage/details/${detailSystemName}`);
+        if(!detailInStorage){
+            const detail = await asyncReadToFirebase(`details/${detailSystemName}`);
+
+            const allSpan = document.querySelectorAll(`#allertAddDetailInStorageCount span`);
+            allSpan[0].textContent = detail.name;
+            allSpan[1].textContent = detail.nameDraw;
+
+
+            document.querySelector(`#allertAddDetailInStorageCount`).classList.remove('display-none');
+            document.querySelector(`#allertAddDetailInStorageCount input`).value = '';
+            document.querySelector(`#allertAddDetailInStorageCount .p-error`).classList.add('display-none');
+
+            const buttons = document.querySelectorAll(`#allertAddDetailInStorageCount button`);
+            buttons[0].onclick = function () { addNewDetailInStorage(detailSystemName) }
+            buttons[1].onclick = function () {
+                document.querySelector(`#allertAddDetailInStorage`).classList.remove('display-none');
+                document.querySelector(`#allertAddDetailInStorageCount`).classList.add('display-none');
+            }
+            closeAllertDownload();
+        } else {
+            closeAllertDownload();
+            openAllertSelectDetailInStorage(detailSystemName);
+        }
+
+    }
+
+    async function addNewDetailInStorage(detailSystemName){
+        const inputCountDetails = document.querySelector(`#allertAddDetailInStorageCount input`);
+        const pError = document.querySelector(`#allertAddDetailInStorageCount .p-error`);
+
+        if(inputCountDetails.value > 0){
+            openAllertDownload();
+            const detail = await asyncReadToFirebase(`details/${detailSystemName}`);
+            const objNewDetail = {
+                name: detail.name,
+                nameDraw: detail.nameDraw,
+                systemName: detail.systemName,
+                countDetails: inputCountDetails.value
+            };
+            const dateNow = Date.now();
+            const objLog = {
+                type: 'Пришло',
+                date: dateNow,
+                worker: selectedWorkerFio,
+                countDetails: inputCountDetails.value,
+                storageCountDetails: inputCountDetails.value
+            };
+            await asyncWriteToFirebase(`storage/details/${detailSystemName}`, objNewDetail);
+            await asyncWriteToFirebase(`logs/storage/details/${detailSystemName}/${dateNow}`, objLog);
+            const countDetailsInStorage = await asyncReadToFirebase(`storage/countDetailsInStorage`);
+            if(countDetailsInStorage){
+                await asyncOverwriteToFirebase(`storage/countDetailsInStorage`, countDetailsInStorage+1);
+            } else {
+                await asyncOverwriteToFirebase(`storage/countDetailsInStorage`, 1);
+            }
+            closeAllAllerts();
+            closeAllertDownload();
+            printPanelStorage();
+        } else {
+            pError.classList.remove(`display-none`);
+        }
+
+    }
+
+    async function openAllertSelectDetailInStorage(detailSystemName){
+        openAllertDownload();
+        const detail = await asyncReadToFirebase(`storage/details/${detailSystemName}`);
+        document.querySelector(`#allertSelectDetailInStorage h2`).textContent = `Детальная информация ${detail.name}`;
+        document.querySelector(`#allertSelectDetailInStorage .name-draw`).textContent = detail.nameDraw;
+        document.querySelector(`#allertSelectDetailInStorage .count-details`).textContent = `${detail.countDetails} шт.`;
+        const bodyTable = document.querySelector(`#allertSelectDetailInStorage tbody`);
+        bodyTable.innerHTML = '';
+        const logs = await asyncReadToFirebase(`logs/storage/details/${detailSystemName}`);
+        if(!logs){
+            bodyTable.innerHTML = `<tr><td colspan=5>Нет логов для этой детали</td></tr>`;
+        } else {
+            Object.values(logs).reverse().forEach(log => {
+                
+                bodyTable.innerHTML += `
+                    <tr class="${log.type === 'Пришло' ? 'green-allocation' : 'red-allocation'}">
+                        <td>${log.type}</td>    
+                        <td>${formatDate(log.date)}</td>    
+                        <td>${formatName(log.worker)}</td>    
+                        <td>${log.countDetails}</td>    
+                        <td>${log.storageCountDetails}</td>    
+                    </tr>
+                `;
+            });
+        }
+        document.querySelector(`#allertSelectDetailInStorage`).classList.remove('display-none');
+        document.querySelector(`#bgForAllert`).classList.remove('display-none');
+        
+        document.querySelector(`#allertSelectDetailInStorage .button-add`).onclick = function() { clickAddLogForDetailInStorage('Пришло', detailSystemName) }
+        document.querySelector(`#allertSelectDetailInStorage .button-minus`).onclick = function() { clickAddLogForDetailInStorage('Ушло', detailSystemName) }
+        document.querySelector(`#allertSelectDetailInStorage input`).value = '';
+        document.querySelector(`#allertSelectDetailInStorage .p-error`).classList.add('display-none');
+        closeAllertDownload();
+    }
+
+    async function clickAddLogForDetailInStorage(type, detailSystemName){
+        openAllertDownload();
+        const inputCountDetails = document.querySelector(`#allertSelectDetailInStorage input`);
+        const pError = document.querySelector(`#allertSelectDetailInStorage .p-error`);
+
+        if(inputCountDetails.value > 0){
+            const storageCountDetails = await asyncReadToFirebase(`storage/details/${detailSystemName}/countDetails`);
+            let newCountDetails = 0;
+            if(type == 'Пришло'){
+                newCountDetails = Number(inputCountDetails.value) + Number(storageCountDetails);
+            } else {
+                newCountDetails = Number(storageCountDetails) - Number(inputCountDetails.value);
+            }
+            if(newCountDetails <= 0){
+                await asyncOverwriteToFirebase(`storage/details/${detailSystemName}`, {});
+                const countDetailsInStorage = await asyncReadToFirebase(`storage/countDetailsInStorage`);
+                await asyncOverwriteToFirebase(`storage/countDetailsInStorage`, countDetailsInStorage-1);
+            } else {
+                await asyncOverwriteToFirebase(`storage/details/${detailSystemName}/countDetails`, newCountDetails);
+            }
+            const dateNow = Date.now();
+            const objLog = {
+                type: type,
+                date: dateNow,
+                worker: selectedWorkerFio,
+                countDetails: inputCountDetails.value,
+                storageCountDetails: newCountDetails
+            };
+
+            await asyncWriteToFirebase(`logs/storage/details/${detailSystemName}/${dateNow}`, objLog);
+
+            inputCountDetails.value = '';
+            pError.classList.add('display-none');
+            closeAllAllerts();
+            closeAllertDownload();
+            await printPanelStorage();
+        } else {
+            pError.classList.remove('display-none');
+            closeAllertDownload();
+        }
+    }
+
+    async function clickSearchDetailsInDetailsPanel(){
+        openAllertDownload();
+        const inputSearch = document.querySelector(`#inputSearchDetailsInDetailsPanel`);
+        const searchText = transliterate(inputSearch.value.trim());
+        if(searchText != ''){
+            const details = await searchByKeyInFirebase(`details`, searchText);
+            
+            if(details){
+                const bodyTable = document.querySelector(`#tb-details-table`);
+                bodyTable.innerHTML = '';
+                Object.entries(details).forEach(([key, detail]) => {
+                    bodyTable.innerHTML += `
+                        <tr onclick="openAllertReductDetail('${key}')" style="cursor:pointer;">
+                            <td>${detail.name}</td>
+                            <td>${detail.nameDraw}</td>
+                            <td>${detail.countInstalls}</td>
+                        </tr>
+                    `;
+                });
+                document.querySelector(`#detailsPanel .navigation-menu-table button`).onclick = function() {};
+                const countDetails = Object.keys(details).length;
+                document.querySelector(`#detailsPanel .navigation-menu-table h5`).textContent = `Загружено ${countDetails} из ${countDetails}`;
+
+            }
+        }    
+        closeAllertDownload();
+    }
+    
+    async function clickSearchDetailsInStoragePanel(){
+        openAllertDownload();
+        const inputSearch = document.querySelector(`#inputSearchDetailsInStorage`);
+        const searchText = transliterate(inputSearch.value.trim());
+        if(searchText != ''){
+            const details = await searchByKeyInFirebase(`storage/details`, searchText);
+            
+            if(details){
+                const bodyTable = document.querySelector(`#bodyTableDetailsStorage`);
+                bodyTable.innerHTML = '';
+                Object.entries(details).forEach(([key, detail]) => {
+                    bodyTable.innerHTML += `
+                        <tr onclick="openAllertSelectDetailInStorage('${key}')" style="cursor:pointer;">
+                            <td>${detail.name}</td>
+                            <td>${detail.nameDraw}</td>
+                            <td>${detail.countDetails}</td>
+                        </tr>
+                    `;
+                });
+                document.querySelector(`#storageDetailsPanel .navigation-menu-table button`).onclick = function() {};
+                const countDetails = Object.keys(details).length;
+                document.querySelector(`#storageDetailsPanel .navigation-menu-table h5`).textContent = `Загружено ${countDetails} из ${countDetails}`;
+
+            }
+        }    
+        closeAllertDownload();
+    }
+    
+    async function clickSearchDetailsInAllertAddDetailInStorage(){
+        openAllertDownload();
+        const inputSearch = document.querySelector(`#inputSearchInAllertAddDetailInStorage`);
+        const searchText = transliterate(inputSearch.value.trim());
+        if(searchText != ''){
+            const details = await searchByKeyInFirebase(`details`, searchText);
+            
+            if(details){
+                const bodyTable = document.querySelector(`#allertAddDetailInStorage tbody`);
+                bodyTable.innerHTML = '';
+                Object.entries(details).forEach(([key, detail]) => {
+                    bodyTable.innerHTML += `
+                        <tr onclick="openAllertAddDetailCountToStorage('${key}')" style="cursor:pointer;">
+                            <td>${detail.name}</td>
+                            <td>${detail.nameDraw}</td>
+                        </tr>
+                    `;
+                });
+                document.querySelector(`#allertAddDetailInStorage .navigation-menu-table button`).onclick = function() {};
+                const countDetails = Object.keys(details).length;
+                document.querySelector(`#allertAddDetailInStorage .navigation-menu-table h5`).textContent = `Загружено ${countDetails} из ${countDetails}`;
+
+            }
+        }    
+        closeAllertDownload();
+    }
+
+    async function clickSearchDetailsInAllertSetupMachine(){
+        openAllertDownload();
+        const inputSearch = document.querySelector(`#inputSearchDetailsInAllertSetupMachine`);
+        const searchText = transliterate(inputSearch.value.trim());
+        if(searchText != ''){
+            const details = await searchByKeyInFirebase(`details`, searchText);
+            
+            if(details){
+                const bodyTable = document.querySelector(`#allertSelectPart tbody`);
+                bodyTable.innerHTML = '';
+                Object.entries(details).forEach(([key, detail]) => {
+                    bodyTable.innerHTML += `
+                        <tr onclick="openAllertSelectInstallForDetailForEditMachine('${key}')" style="cursor:pointer;">
+                            <td>${detail.name}</td>
+                            <td>${detail.nameDraw}</td>
+                            <td>${detail.countInstalls}</td>
+                        </tr>
+                    `;
+                });
+                document.querySelector(`#allertSelectPart .navigation-menu-table button`).onclick = function() {};
+                const countDetails = Object.keys(details).length;
+                document.querySelector(`#allertSelectPart .navigation-menu-table h5`).textContent = `Загружено ${countDetails} из ${countDetails}`;
+
+            }
+        }    
+        closeAllertDownload();
+    }
+
+    // что делать дальше
+    // добавить охрану вниз что в табеле, что в 
+    // придумать что-то для заказов наверное.
+    // сделать статистику по станкам деталям и тд. 
+    // сделать нормальное мобильное приложение
+    // и на этом можно в принципе заканчивать приложение, доводить его до идеала та и все в итоге.
+    // подредактировать все мелочи по дизайну и функционалу
+    // потом можно предложить создать новый сайт, старый не трогать его можно использовать как донора ссылок,
+    // новый сайт сделать более продуманным, оптимизировать сео до мелочей, добавить на него статьи и тд, что бы посмотреть можно ли вообще без ссылок что-то предпринимать
+
+
+    // что дальше добавлять 
+    // что бы сохранялась ставка почасовая по чем в прошлый раз человек получал
+    // так же добавить что бы велся учет когда и сколько денег человеку было выдано денег
+</script>
+</body>
+</html>
