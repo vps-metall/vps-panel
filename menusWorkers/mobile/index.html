@@ -562,7 +562,7 @@
         document.querySelector('#h5WorkerName').textContent = `${worker.fio}`;
         
         if(worker.status == 'На работе'){
-            document.querySelector(`#buttonEndWorkDay`).classList.remove(`display-none`);
+            //document.querySelector(`#buttonEndWorkDay`).classList.remove(`display-none`);
             document.querySelector(`#divContainerTimerWork`).classList.remove(`display-none`);
             document.querySelector(`#buttonStartWork`).classList.remove(`display-none`);
             document.querySelector(`#h5TimerWorkDay`).textContent = getTimeDifference(Date.now(), worker.dateActualyWorkDay);
