@@ -2112,17 +2112,21 @@
     }
 
     function clickReductCreditForWorker(workerSystemName, credit){
+        let creditWorker = 0;
+        if(credit){
+            creditWorker = Number(credit);
+        }
         const minusInput = document.querySelector(`#inputMinusCreditForReductInformationWorker`);
         const addInput = document.querySelector(`#inputAddCreditForReductInformationWorker`);
 
         if(Number(minusInput.value) > 0){
-            overwriteToFirebase(`workers/${workerSystemName}/credit`, Number(credit) - Number(minusInput.value));
+            overwriteToFirebase(`workers/${workerSystemName}/credit`, Number(creditWorker) - Number(minusInput.value));
             closeAllAllerts();
             let value = 0;
             value -= Number(minusInput.value);
             addLog(workerSystemName, value);
         } else if(Number(addInput.value) > 0){
-            overwriteToFirebase(`workers/${workerSystemName}/credit`, Number(credit) + Number(addInput.value));
+            overwriteToFirebase(`workers/${workerSystemName}/credit`, Number(creditWorker) + Number(addInput.value));
             closeAllAllerts();
             addLog(workerSystemName, Number(addInput.value));
         } else {
@@ -2134,8 +2138,8 @@
             const log = {
                 date: dateNow,
                 typeLog: 'Credit',
-                newCredit: credit + value,
-                oldCredit: credit,
+                newCredit: creditWorker + value,
+                oldCredit: creditWorker,
                 value: value
             };
 
