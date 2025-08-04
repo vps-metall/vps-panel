@@ -3016,7 +3016,9 @@
                             `
                         });
 
-                        arrayCoefficientsThisPeriod.push(averageProcent);
+                        if(averageProcent != 0){
+                            arrayCoefficientsThisPeriod.push(averageProcent);
+                        }
                     }
 
                     // Отрисовка общей информации
@@ -3313,3 +3315,4 @@
 </script>
 </body>
 </html>
+
