@@ -1799,6 +1799,7 @@
     }
 
     function clickDeleteWorker(worker){
+        event.stopPropagation();
         overwriteToFirebase(`workers/${worker}`, {});
         overwriteToFirebase(`logs/workers/${worker}`, {});
         fetch(`${apiLink}/delete_image`, {
@@ -3992,4 +3993,5 @@
 </script>
 </body>
 </html>
+
 
